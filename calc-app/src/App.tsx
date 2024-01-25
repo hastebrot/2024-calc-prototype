@@ -2,7 +2,7 @@ import { clsx } from "clsx";
 import { derive } from "derive-valtio";
 import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
-import { Fragment, Profiler, memo, useCallback } from "react";
+import { Fragment, Profiler, memo, useCallback, useRef } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { deepClone } from "valtio/utils";
 import { Zod, z } from "./helper/zod";
@@ -137,9 +137,11 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const App = () => {
+  const boardRef = useRef(board);
+
   return (
     <ProfilerWrapper noLogging>
-      <AppBoard board={board} />
+      <AppBoard board={boardRef.current} />
     </ProfilerWrapper>
   );
 };
