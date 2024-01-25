@@ -198,6 +198,9 @@ type AppBoardSubsectionProps = {
 
 const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
   useSnapshot(props.subsection);
+  const onClickAddItem = () => {
+    props.subsection.items?.push(proxy({ id: nanoid(10), name: "New item" }));
+  };
 
   return (
     <Fragment>
@@ -206,6 +209,12 @@ const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
         {props.subsection.items?.map((item) => {
           return <Item key={item.id} item={item} items={props.subsection.items!} />;
         })}
+        <div className="flex items-center justify-between py-2 px-2">
+          <button className="inline-flex items-center gap-2" onClick={onClickAddItem}>
+            <Lucide.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
+            <div>Add item</div>
+          </button>
+        </div>
       </Group>
     </Fragment>
   );
@@ -253,7 +262,7 @@ const Section = (props: SectionProps) => {
         <span>{name}</span>
       </div>
 
-      <div className="flex items-center gap-4 -my-2 -mr-1">
+      <div className="flex items-center gap-4 -my-2">
         <Subtotal value={subtotal} />
         <button
           className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
@@ -288,7 +297,7 @@ const Subsection = (props: SubsectionProps) => {
         <span>{name}</span>
       </div>
 
-      <div className="flex items-center gap-4 -my-2 -mr-1">
+      <div className="flex items-center gap-4 -my-2">
         <Subtotal value={subtotal} />
         <button
           className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
@@ -358,7 +367,7 @@ const Item = (props: ItemProps) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 -my-2 -mr-1">
+      <div className="flex items-center gap-4 -my-2">
         <Subtotal value={subtotal} />
         <button
           className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
