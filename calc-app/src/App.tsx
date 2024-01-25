@@ -3,8 +3,8 @@ import * as Lucide from "lucide-react";
 import { nanoid } from "nanoid";
 import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
-import { Zod, z } from "./helper/zod";
 import { deepClone } from "valtio/utils";
+import { Zod, z } from "./helper/zod";
 
 const ItemSchema = z.object({
   id: z.string(),
@@ -151,7 +151,9 @@ export const App = () => {
       <div className="sticky top-0 p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
         <div className="flex items-center justify-between">
           <span>{title}</span>
-          <Subtotal value={subtotal} />
+          <div>
+            <span>Total:</span> <span>{moneyFormat.format(subtotal)}</span>
+          </div>
         </div>
       </div>
 
@@ -217,7 +219,7 @@ const Section = (props: SectionProps) => {
 
       <div className="flex items-center gap-4">
         <Subtotal value={subtotal} />
-        <Lucide.Trash2 size={18} />
+        <Lucide.Trash2 className="flex-shrink-0" size={18} />
       </div>
     </div>
   );
@@ -234,13 +236,13 @@ const Subsection = (props: SubsectionProps) => {
   return (
     <div className="flex items-center justify-between py-4 px-2 pr-3">
       <div className="flex items-center gap-2">
-        <Lucide.ChevronDown size={18} />
+        <Lucide.ChevronDown className="flex-shrink-0" size={18} />
         <span>{name}</span>
       </div>
 
       <div className="flex items-center gap-4">
         <Subtotal value={subtotal} />
-        <Lucide.Trash2 size={18} />
+        <Lucide.Trash2 className="flex-shrink-0" size={18} />
       </div>
     </div>
   );
@@ -264,7 +266,7 @@ const Item = (props: ItemProps) => {
   return (
     <div className="flex items-center justify-between py-2 px-2 pr-3">
       <div className="flex items-center gap-2">
-        <Lucide.GripVertical className="text-[#918D85]" size={18} />
+        <Lucide.GripVertical className="flex-shrink-0 text-[#918D85]" size={18} />
         <div className="grid grid-flow-col auto-cols-max">
           <label>
             <div className="text-xs text-[#1C4E88] font-[600]">Description</div>
@@ -297,7 +299,7 @@ const Item = (props: ItemProps) => {
 
       <div className="flex items-center gap-4">
         <Subtotal value={subtotal} />
-        <Lucide.X size={18} />
+        <Lucide.X className="flex-shrink-0" size={18} />
       </div>
     </div>
   );
@@ -308,5 +310,9 @@ type SubtotalProps = {
 };
 
 const Subtotal = (props: SubtotalProps) => {
-  return <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(props.value)}</div>;
+  return (
+    <div className="font-[600] text-sm tabular-nums whitespace-nowrap">
+      {moneyFormat.format(props.value)}
+    </div>
+  );
 };
