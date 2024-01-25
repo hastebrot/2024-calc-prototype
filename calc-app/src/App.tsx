@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 import { derive } from "derive-valtio";
-import * as Lucide from "lucide-react";
+import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
@@ -225,7 +225,7 @@ const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
 
           <div className="flex items-center justify-between py-2 px-2">
             <button className="inline-flex items-center gap-2" onClick={onClickAddItem}>
-              <Lucide.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
+              <icons.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
               <div>Add item</div>
             </button>
           </div>
@@ -279,7 +279,7 @@ const Section = (props: SectionProps) => {
         className="font-[600] flex items-center gap-2 cursor-pointer"
         onClick={onClickToggleCollapse}
       >
-        <Lucide.ChevronDown
+        <icons.ChevronDown
           size={18}
           className={clsx(props.section.isCollapsed ? "-rotate-90" : "rotate-0")}
         />
@@ -292,7 +292,7 @@ const Section = (props: SectionProps) => {
           className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
           onClick={onClickRemoveSection}
         >
-          <Lucide.Trash2 className="flex-shrink-0" size={18} />
+          <icons.Trash2 className="flex-shrink-0" size={18} />
         </button>
       </div>
     </div>
@@ -320,7 +320,7 @@ const Subsection = (props: SubsectionProps) => {
   return (
     <div className="flex items-center justify-between py-4 px-2">
       <button className="flex items-center gap-2 cursor-pointer" onClick={onClickToggleCollapse}>
-        <Lucide.ChevronDown
+        <icons.ChevronDown
           size={18}
           className={clsx(props.subsection.isCollapsed ? "-rotate-90" : "rotate-0")}
         />
@@ -333,7 +333,7 @@ const Subsection = (props: SubsectionProps) => {
           className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
           onClick={onClickRemoveSubsection}
         >
-          <Lucide.Trash2 className="flex-shrink-0" size={18} />
+          <icons.Trash2 className="flex-shrink-0" size={18} />
         </button>
       </div>
     </div>
@@ -366,7 +366,7 @@ const Item = (props: ItemProps) => {
   return (
     <div className="flex items-center justify-between py-2 px-2">
       <div className="flex items-center gap-2">
-        <Lucide.GripVertical className="flex-shrink-0 text-[#918D85]" size={18} />
+        <icons.GripVertical className="flex-shrink-0 text-[#918D85]" size={18} />
         <div className="grid grid-flow-col auto-cols-max">
           <label>
             <div className="text-xs text-[#1C4E88] font-[600]">Description</div>
@@ -403,7 +403,7 @@ const Item = (props: ItemProps) => {
           className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
           onClick={onClickRemoveItem}
         >
-          <Lucide.X className="flex-shrink-0" size={18} />
+          <icons.X className="flex-shrink-0" size={18} />
         </button>
       </div>
     </div>
