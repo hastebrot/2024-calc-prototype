@@ -120,14 +120,14 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
-const numOfSections = 100; // 100
+const numOfSections = 100;
 boardFixture.sections = Array.from({ length: numOfSections }).flatMap(() => {
   return deepClone(boardFixture.sections.map((section) => ({ ...section, id: nanoid(20) })));
 });
 
-const appState = deriveBoard(proxy(boardFixture));
-appState.sections = appState.sections.map(deriveSection);
-for (const section of appState.sections) {
+const board = deriveBoard(proxy(boardFixture));
+board.sections = board.sections.map(deriveSection);
+for (const section of board.sections) {
   section.subsections = section.subsections.map(deriveSubsection);
 }
 
@@ -137,60 +137,22 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const App = () => {
-  useSnapshot(appState.sections);
-  const sections = appState.sections;
+  useSnapshot(board.sections);
 
   return (
-    <AppProfiler>
+    <ProfilerWrapper noLogging>
       <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
         <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
-          <AppBoardHeader board={appState} />
+          <AppBoardHeader board={board} />
         </div>
 
         <div className="p-4 text-[#0F203C]">
-          {sections.map((section) => {
-            return <AppBoardSection key={section.id} section={section} sections={sections} />;
+          {board.sections.map((section) => {
+            return <AppBoardSection key={section.id} section={section} sections={board.sections} />;
           })}
         </div>
       </div>
-    </AppProfiler>
-  );
-};
-
-type ProfilerOnRenderCallback = (
-  id: string,
-  phase: "mount" | "update" | "nested-update",
-  actualDuration: number,
-  baseDuration: number,
-  startTime: number,
-  commitTime: number
-) => void;
-
-type AppProfilerProps = {
-  children?: React.ReactNode;
-};
-
-const AppProfiler = ({ children }: AppProfilerProps) => {
-  const onRender: ProfilerOnRenderCallback = (
-    id,
-    phase,
-    actualDuration,
-    baseDuration,
-    startTime
-  ) => {
-    console.debug({
-      startTime: Math.round(startTime),
-      id,
-      phase,
-      actualDuration: `${Math.round(actualDuration)} ms`,
-      baseDuration: `${Math.round(baseDuration)} ms`,
-    });
-  };
-
-  return (
-    <Profiler id="App" onRender={onRender}>
-      {children}
-    </Profiler>
+    </ProfilerWrapper>
   );
 };
 
@@ -218,8 +180,8 @@ type AppBoardSectionProps = {
 };
 
 const AppBoardSection = memo((props: AppBoardSectionProps) => {
-  const isCollapsed = useSnapshot(props.section).isCollapsed;
   useSnapshot(props.section.subsections);
+  const isCollapsed = useSnapshot(props.section).isCollapsed;
 
   return (
     <Board key={props.section.id}>
@@ -246,9 +208,9 @@ type AppBoardSubsectionProps = {
   subsections: z.infer<typeof SubsectionSchema>[];
 };
 
-const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
+const AppBoardSubsection = memo((props: AppBoardSubsectionProps) => {
+  useSnapshot(props.subsections);
   const isCollapsed = useSnapshot(props.subsection).isCollapsed;
-  useSnapshot(props.subsection);
   const onClickAddItem = () => {
     const item = Zod.parse(ItemSchema, {
       id: nanoid(10),
@@ -277,7 +239,7 @@ const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
       )}
     </Fragment>
   );
-};
+});
 
 type BoardProps = {
   children?: React.ReactNode;
@@ -459,5 +421,45 @@ const Subtotal = (props: SubtotalProps) => {
     <div className="font-[600] text-sm tabular-nums whitespace-nowrap">
       {moneyFormat.format(props.value)}
     </div>
+  );
+};
+
+type ProfilerOnRenderCallback = (
+  id: string,
+  phase: "mount" | "update" | "nested-update",
+  actualDuration: number,
+  baseDuration: number,
+  startTime: number,
+  commitTime: number
+) => void;
+
+type ProfilerWrapperProps = {
+  children?: React.ReactNode;
+  noLogging?: boolean;
+};
+
+const ProfilerWrapper = ({ children, ...props }: ProfilerWrapperProps) => {
+  const onRender: ProfilerOnRenderCallback = (
+    id,
+    phase,
+    actualDuration,
+    baseDuration,
+    startTime
+  ) => {
+    if (!props.noLogging) {
+      console.debug({
+        startTime: Math.round(startTime),
+        id,
+        phase,
+        actualDuration: `${Math.round(actualDuration)} ms`,
+        baseDuration: `${Math.round(baseDuration)} ms`,
+      });
+    }
+  };
+
+  return (
+    <Profiler id="App" onRender={onRender}>
+      {children}
+    </Profiler>
   );
 };
