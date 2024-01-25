@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { Zod, z } from "./helper/zod";
+import { deepClone } from "valtio/utils";
 
 const ItemSchema = z.object({
   id: z.string(),
@@ -151,6 +152,19 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
+exampleBoard.sections = [
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+];
+
 const appState = deriveBoard(proxy(exampleBoard));
 appState.sections = appState.sections?.map(deriveSection);
 for (const section of appState.sections ?? []) {
@@ -177,27 +191,25 @@ export const App = () => {
       </div>
 
       <div className="p-4 text-[#0F203C]">
-        <Board>
-          {sections?.map((section) => {
-            return (
-              <Fragment key={section.id}>
-                <Section section={section} />
-                {section.subsections?.map((subsection) => {
-                  return (
-                    <Fragment key={subsection.id}>
-                      <Subsection subsection={subsection}></Subsection>
-                      <Group>
-                        {subsection.items?.map((item) => {
-                          return <Item key={item.id} item={item} />;
-                        })}
-                      </Group>
-                    </Fragment>
-                  );
-                })}
-              </Fragment>
-            );
-          })}
-        </Board>
+        {sections?.map((section) => {
+          return (
+            <Board key={section.id}>
+              <Section section={section} />
+              {section.subsections?.map((subsection) => {
+                return (
+                  <Fragment key={subsection.id}>
+                    <Subsection subsection={subsection}></Subsection>
+                    <Group>
+                      {subsection.items?.map((item) => {
+                        return <Item key={item.id} item={item} />;
+                      })}
+                    </Group>
+                  </Fragment>
+                );
+              })}
+            </Board>
+          );
+        })}
       </div>
     </div>
   );
@@ -209,7 +221,7 @@ type BoardProps = {
 
 const Board = ({ children }: BoardProps) => {
   return (
-    <div className="mx-auto max-w-[800px] bg-[#ECE7DE] px-4 pb-4 box-content rounded-lg">
+    <div className="mb-4 mx-auto max-w-[800px] bg-[#ECE7DE] px-4 pb-4 box-content rounded-lg">
       {children}
     </div>
   );
