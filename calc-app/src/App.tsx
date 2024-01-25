@@ -1,11 +1,16 @@
-import { proxy, useSnapshot } from "valtio";
 import { derive } from "derive-valtio";
-import { store } from "./store";
-import { useCallback } from "react";
-import { nanoid } from "nanoid";
 import * as Lucide from "lucide-react";
+import { nanoid } from "nanoid";
+import { Fragment, useCallback } from "react";
+import { proxy, useSnapshot } from "valtio";
+import { Zod, z } from "./helper/zod";
+import { store } from "./store";
 
-type Item = { id: string; name: string; price?: number };
+type Item = {
+  id: string;
+  name: string;
+  price?: number;
+};
 
 const myProxy = proxy({
   items: [] as Item[],
@@ -24,12 +29,79 @@ const barProxy = derive({
   },
 });
 
+const ItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number().optional(),
+});
+
+const SubsectionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  items: z.array(ItemSchema).optional(),
+});
+
+const SectionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  subsections: z.array(SubsectionSchema).optional(),
+});
+
+const BoardSchema = z.object({
+  name: z.string(),
+  sections: z.array(SectionSchema).optional(),
+});
+
+type Board = z.infer<typeof BoardSchema>;
+
+const appState = proxy(
+  Zod.parse(BoardSchema, {
+    name: "Beispielkalkulation",
+    sections: [
+      {
+        id: nanoid(10),
+        name: "Gagen",
+        subsections: [
+          {
+            id: nanoid(10),
+            name: "Produktionsstab",
+            items: [
+              { id: nanoid(10), name: "Produzent", price: 1000 },
+              { id: nanoid(10), name: "Produktionsleitung", price: 900 },
+              { id: nanoid(10), name: "1. Aufnahmeleitung", price: 800 },
+            ],
+          },
+          {
+            id: nanoid(10),
+            name: "Regiestab",
+            items: [
+              { id: nanoid(10), name: "Regie", price: 1000 },
+              { id: nanoid(10), name: "1. Regieassistenz", price: 900 },
+              { id: nanoid(10), name: "Script / Continuity", price: 800 },
+            ],
+          },
+          {
+            id: nanoid(10),
+            name: "Kamerastab",
+            items: [
+              { id: nanoid(10), name: "Kamera", price: 1000 },
+              { id: nanoid(10), name: "1. Kameraassistenz", price: 900 },
+            ],
+          },
+        ],
+      },
+    ],
+  })
+);
+
 const moneyFormat = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "EUR",
 });
 
 export const App = () => {
+  const sections = appState.sections;
+
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
       <div className="p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
@@ -38,24 +110,29 @@ export const App = () => {
 
       <div className="p-4 text-[#0F203C]">
         <Board>
-          <Section>Gagen</Section>
-          <Subsection>Produktionsstab</Subsection>
-          <Group>
-            <Item>Produzent</Item>
-            <Item>Produktionsleitung</Item>
-            <Item>1. Aufnahmeleitung</Item>
-          </Group>
-          <Subsection>Regiestab</Subsection>
-          <Group>
-            <Item>Regie</Item>
-            <Item>1. Regieassistenz</Item>
-            <Item>Script / Continuity</Item>
-          </Group>
-          <Subsection>Kamerastab</Subsection>
-          <Group>
-            <Item>Kamera</Item>
-            <Item>1. Kameraassistenz</Item>
-          </Group>
+          {sections?.map((section) => {
+            return (
+              <Fragment key={section.id}>
+                <Section>{section.name}</Section>
+                {section.subsections?.map((subsection) => {
+                  return (
+                    <Fragment key={subsection.id}>
+                      <Subsection>{subsection.name}</Subsection>
+                      <Group>
+                        {subsection.items?.map((item) => {
+                          return (
+                            <Item key={item.id} item={item}>
+                              {item.name}
+                            </Item>
+                          );
+                        })}
+                      </Group>
+                    </Fragment>
+                  );
+                })}
+              </Fragment>
+            );
+          })}
         </Board>
       </div>
 
@@ -126,9 +203,12 @@ const Subsection = ({ children }: SubsectionProps) => {
 };
 type ItemProps = {
   children?: React.ReactNode;
+  item: z.infer<typeof ItemSchema>;
 };
 
-const Item = ({ children }: ItemProps) => {
+const Item = ({ children, ...props }: ItemProps) => {
+  const price = useSnapshot(props.item).price ?? 0;
+
   return (
     <div className="flex items-center justify-between py-2 px-2 pr-3">
       <div className="flex items-center gap-2">
@@ -146,12 +226,12 @@ const Item = ({ children }: ItemProps) => {
           <label className="text-xs text-[#1C4E88] font-[600]">Price/Unit</label>
           <input
             className="pr-2 mr-4 max-w-[120px] border-r-0 border-[#888A90]"
-            defaultValue="1000"
+            defaultValue={price}
           />
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(1000)}</div>
+        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(price)}</div>
         <Lucide.X size={18} />
       </div>
     </div>
