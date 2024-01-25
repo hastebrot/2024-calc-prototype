@@ -3,7 +3,7 @@ import { z } from "zod";
 export { z };
 
 export const Zod = {
-  parse<T>(schema: z.ZodType<T, z.ZodTypeDef, T>, value: T): T {
+  parse<Out, In>(schema: z.ZodType<Out, z.ZodTypeDef, In>, value: In): Out {
     try {
       return schema.parse(value);
     } catch (error: unknown) {

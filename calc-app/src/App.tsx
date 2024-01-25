@@ -1,140 +1,17 @@
-import { derive } from "derive-valtio";
-import * as Lucide from "lucide-react";
+import { clsx } from "clsx";
+import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
-import { Fragment, useCallback } from "react";
+import { Fragment, Profiler, memo, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
-import { deepClone } from "valtio/utils";
 import { Zod, z } from "./helper/zod";
-
-const ItemSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  subtotal: z.number().optional(),
-});
-
-const SubsectionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  items: z.array(ItemSchema).optional(),
-  subtotal: z.number().optional(),
-});
-
-const SectionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  subsections: z.array(SubsectionSchema).optional(),
-  subtotal: z.number().optional(),
-});
-
-const BoardSchema = z.object({
-  title: z.string(),
-  sections: z.array(SectionSchema).optional(),
-  subtotal: z.number().optional(),
-});
-
-type Board = z.infer<typeof BoardSchema>;
-
-const exampleBoard = Zod.parse(BoardSchema, {
-  title: "Beispielkalkulation",
-  sections: [
-    {
-      id: nanoid(10),
-      name: "Gagen",
-      subsections: [
-        {
-          id: nanoid(10),
-          name: "Produktionsstab",
-          items: [
-            { id: nanoid(10), name: "Produzent", subtotal: 1000 },
-            { id: nanoid(10), name: "Produktionsleitung", subtotal: 900 },
-            { id: nanoid(10), name: "1. Aufnahmeleitung", subtotal: 800 },
-          ],
-        },
-        {
-          id: nanoid(10),
-          name: "Regiestab",
-          items: [
-            { id: nanoid(10), name: "Regie", subtotal: 1000 },
-            { id: nanoid(10), name: "1. Regieassistenz", subtotal: 900 },
-            { id: nanoid(10), name: "Script / Continuity", subtotal: 800 },
-          ],
-        },
-        {
-          id: nanoid(10),
-          name: "Kamerastab",
-          items: [
-            { id: nanoid(10), name: "Kamera", subtotal: 1000 },
-            { id: nanoid(10), name: "1. Kameraassistenz", subtotal: 900 },
-          ],
-        },
-      ],
-    },
-  ],
-});
-
-const deriveBoard = (board: z.infer<typeof BoardSchema>) => {
-  return derive(
-    {
-      subtotal(get) {
-        let sum = 0;
-        for (const section of board.sections ?? []) {
-          sum += get(section).subtotal ?? 0;
-        }
-        return sum;
-      },
-    },
-    { proxy: board }
-  );
-};
-
-const deriveSection = (section: z.infer<typeof SectionSchema>) => {
-  return derive(
-    {
-      subtotal(get) {
-        let sum = 0;
-        for (const subsection of section.subsections ?? []) {
-          sum += get(subsection).subtotal ?? 0;
-        }
-        return sum;
-      },
-    },
-    { proxy: section }
-  );
-};
-
-const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
-  return derive(
-    {
-      subtotal(get) {
-        let sum = 0;
-        for (const item of subsection.items ?? []) {
-          sum += get(item).subtotal ?? 0;
-        }
-        return sum;
-      },
-    },
-    { proxy: subsection }
-  );
-};
-
-exampleBoard.sections = [
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-];
-
-const appState = deriveBoard(proxy(exampleBoard));
-appState.sections = appState.sections?.map(deriveSection);
-for (const section of appState.sections ?? []) {
-  section.subsections = section.subsections?.map(deriveSubsection);
-}
+import {
+  BoardSchema,
+  ItemSchema,
+  SectionSchema,
+  SubsectionSchema,
+  deriveSubsection,
+  store,
+} from "./store";
 
 const moneyFormat = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -142,45 +19,138 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const App = () => {
-  const title = useSnapshot(appState).title;
-  const subtotal = useSnapshot(appState).subtotal ?? 0;
-  const sections = appState.sections;
+  return (
+    <ProfilerWrapper noLogging>
+      <AppBoard board={store.board} />
+    </ProfilerWrapper>
+  );
+};
+
+type AppBoardProps = {
+  board: z.infer<typeof BoardSchema>;
+};
+
+const AppBoard = (props: AppBoardProps) => {
+  useSnapshot(props.board.sections);
 
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
       <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
-        <div className="flex items-center justify-between">
-          <span>{title}</span>
-          <div>
-            <span>&Sigma; Total =</span> <span>{moneyFormat.format(subtotal)}</span>
-          </div>
-        </div>
+        <AppBoardHeader board={props.board} />
       </div>
 
       <div className="p-4 text-[#0F203C]">
-        {sections?.map((section) => {
+        {props.board.sections.map((section) => {
           return (
-            <Board key={section.id}>
-              <Section section={section} />
-              {section.subsections?.map((subsection) => {
-                return (
-                  <Fragment key={subsection.id}>
-                    <Subsection subsection={subsection}></Subsection>
-                    <Group>
-                      {subsection.items?.map((item) => {
-                        return <Item key={item.id} item={item} />;
-                      })}
-                    </Group>
-                  </Fragment>
-                );
-              })}
-            </Board>
+            <AppBoardSection key={section.id} section={section} sections={props.board.sections} />
           );
         })}
       </div>
     </div>
   );
 };
+
+type AppBoardHeaderProps = {
+  board: z.infer<typeof BoardSchema>;
+};
+
+const AppBoardHeader = (props: AppBoardHeaderProps) => {
+  const title = useSnapshot(props.board).title;
+  const subtotal = useSnapshot(props.board).subtotal ?? 0;
+
+  return (
+    <div className="flex items-center justify-between">
+      <span>{title}</span>
+      <div>
+        <span>&Sigma; Total =</span> <span>{moneyFormat.format(subtotal)}</span>
+      </div>
+    </div>
+  );
+};
+
+type AppBoardSectionProps = {
+  section: z.infer<typeof SectionSchema>;
+  sections: z.infer<typeof SectionSchema>[];
+};
+
+const AppBoardSection = memo((props: AppBoardSectionProps) => {
+  useSnapshot(props.section.subsections);
+  const isCollapsed = useSnapshot(props.section).isCollapsed;
+  const onClickAddSubsection = () => {
+    const subsection = Zod.parse(SubsectionSchema, {
+      id: nanoid(10),
+      name: "New subsection",
+    });
+    props.section.subsections.push(deriveSubsection(proxy(subsection)));
+  };
+
+  return (
+    <Board key={props.section.id}>
+      <Section section={props.section} sections={props.sections} />
+      {!isCollapsed && (
+        <div className="border-t border-[#B8AE9C]">
+          {props.section.subsections.map((subsection) => {
+            return (
+              <AppBoardSubsection
+                key={subsection.id}
+                subsection={subsection}
+                subsections={props.section.subsections}
+              />
+            );
+          })}
+          <button
+            className="inline-flex items-center gap-2 mt-4 ml-8 text-[#1C4E88]"
+            onClick={onClickAddSubsection}
+          >
+            <icons.PlusCircle className="flex-shrink-0" size={18} />
+            <div>Add subsection</div>
+          </button>
+        </div>
+      )}
+    </Board>
+  );
+});
+
+type AppBoardSubsectionProps = {
+  subsection: z.infer<typeof SubsectionSchema>;
+  subsections: z.infer<typeof SubsectionSchema>[];
+};
+
+const AppBoardSubsection = memo((props: AppBoardSubsectionProps) => {
+  useSnapshot(props.subsections);
+  const isCollapsed = useSnapshot(props.subsection).isCollapsed;
+  const onClickAddItem = () => {
+    const item = Zod.parse(ItemSchema, {
+      id: nanoid(10),
+      name: "New item",
+      subtotal: 0,
+    });
+    props.subsection.items.push(item);
+  };
+
+  return (
+    <Fragment>
+      <Subsection subsection={props.subsection} subsections={props.subsections}></Subsection>
+      {!isCollapsed && (
+        <Group>
+          {props.subsection.items.map((item) => {
+            return <Item key={item.id} item={item} items={props.subsection.items} />;
+          })}
+
+          <div className="flex items-center justify-between py-2 px-2">
+            <button
+              className="inline-flex items-center gap-2 ml-6 text-[#1C4E88]"
+              onClick={onClickAddItem}
+            >
+              <icons.PlusCircle className="flex-shrink-0" size={18} />
+              <div>Add item</div>
+            </button>
+          </div>
+        </Group>
+      )}
+    </Fragment>
+  );
+});
 
 type BoardProps = {
   children?: React.ReactNode;
@@ -204,22 +174,43 @@ const Group = ({ children }: GroupProps) => {
 
 type SectionProps = {
   section: z.infer<typeof SectionSchema>;
+  sections: z.infer<typeof SectionSchema>[];
 };
 
 const Section = (props: SectionProps) => {
   const name = useSnapshot(props.section).name;
   const subtotal = useSnapshot(props.section).subtotal ?? 0;
+  const isCollapsed = useSnapshot(props.section).isCollapsed;
+  const onClickRemoveSection = () => {
+    const sectionIndex = props.sections.indexOf(props.section) ?? null;
+    if (sectionIndex !== null) {
+      props.sections.splice(sectionIndex, 1);
+    }
+  };
+  const onClickToggleCollapse = () => {
+    props.section.isCollapsed = !props.section.isCollapsed;
+  };
 
   return (
-    <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2 pr-3">
-      <div className="font-[600] flex items-center gap-2">
-        <Lucide.ChevronDown size={18} />
+    <div className="flex items-center justify-between py-4 px-2">
+      <button
+        className="font-[600] flex items-center gap-2 cursor-pointer"
+        onClick={onClickToggleCollapse}
+      >
+        <icons.ChevronDown size={18} className={clsx(isCollapsed ? "-rotate-90" : "rotate-0")} />
         <span>{name}</span>
-      </div>
+      </button>
 
-      <div className="flex items-center gap-4">
-        <Subtotal value={subtotal} />
-        <Lucide.Trash2 className="flex-shrink-0" size={18} />
+      <div className="flex items-center gap-4 -my-2">
+        <div className="p-1.5 -m-1.5 bg-black/15 rounded-md">
+          <Subtotal value={subtotal} />
+        </div>
+        <button
+          className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
+          onClick={onClickRemoveSection}
+        >
+          <icons.Trash2 className="flex-shrink-0" size={18} />
+        </button>
       </div>
     </div>
   );
@@ -227,22 +218,38 @@ const Section = (props: SectionProps) => {
 
 type SubsectionProps = {
   subsection: z.infer<typeof SubsectionSchema>;
+  subsections: z.infer<typeof SubsectionSchema>[];
 };
 
 const Subsection = (props: SubsectionProps) => {
   const name = useSnapshot(props.subsection).name;
   const subtotal = useSnapshot(props.subsection).subtotal ?? 0;
+  const isCollapsed = useSnapshot(props.subsection).isCollapsed;
+  const onClickRemoveSubsection = () => {
+    const subsectionIndex = props.subsections.indexOf(props.subsection) ?? null;
+    if (subsectionIndex !== null) {
+      props.subsections.splice(subsectionIndex, 1);
+    }
+  };
+  const onClickToggleCollapse = () => {
+    props.subsection.isCollapsed = !props.subsection.isCollapsed;
+  };
 
   return (
-    <div className="flex items-center justify-between py-4 px-2 pr-3">
-      <div className="flex items-center gap-2">
-        <Lucide.ChevronDown className="flex-shrink-0" size={18} />
+    <div className="flex items-center justify-between py-4 px-2">
+      <button className="flex items-center gap-2 cursor-pointer" onClick={onClickToggleCollapse}>
+        <icons.ChevronDown size={18} className={clsx(isCollapsed ? "-rotate-90" : "rotate-0")} />
         <span>{name}</span>
-      </div>
+      </button>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 -my-2">
         <Subtotal value={subtotal} />
-        <Lucide.Trash2 className="flex-shrink-0" size={18} />
+        <button
+          className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
+          onClick={onClickRemoveSubsection}
+        >
+          <icons.Trash2 className="flex-shrink-0" size={18} />
+        </button>
       </div>
     </div>
   );
@@ -250,11 +257,12 @@ const Subsection = (props: SubsectionProps) => {
 
 type ItemProps = {
   item: z.infer<typeof ItemSchema>;
+  items: z.infer<typeof ItemSchema>[];
 };
 
 const Item = (props: ItemProps) => {
   const name = useSnapshot(props.item).name;
-  const subtotal = useSnapshot(props.item).subtotal ?? 0;
+  const subtotal = useSnapshot(props.item, { sync: true }).subtotal ?? 0;
   const onChangeSubtotal = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = parseFloat(event.currentTarget.value);
@@ -263,11 +271,17 @@ const Item = (props: ItemProps) => {
     },
     [props.item]
   );
+  const onClickRemoveItem = () => {
+    const itemIndex = props.items.indexOf(props.item) ?? null;
+    if (itemIndex !== null) {
+      props.items.splice(itemIndex, 1);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-between py-2 px-2 pr-3">
+    <div className="flex items-center justify-between py-2 px-2">
       <div className="flex items-center gap-2">
-        <Lucide.GripVertical className="flex-shrink-0 text-[#918D85]" size={18} />
+        <icons.GripVertical className="flex-shrink-0 text-[#918D85]" size={18} />
         <div className="grid grid-flow-col auto-cols-max">
           <label>
             <div className="text-xs text-[#1C4E88] font-[600]">Description</div>
@@ -298,9 +312,14 @@ const Item = (props: ItemProps) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 -my-2">
         <Subtotal value={subtotal} />
-        <Lucide.X className="flex-shrink-0" size={18} />
+        <button
+          className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
+          onClick={onClickRemoveItem}
+        >
+          <icons.X className="flex-shrink-0" size={18} />
+        </button>
       </div>
     </div>
   );
@@ -315,5 +334,45 @@ const Subtotal = (props: SubtotalProps) => {
     <div className="font-[600] text-sm tabular-nums whitespace-nowrap">
       {moneyFormat.format(props.value)}
     </div>
+  );
+};
+
+type ProfilerOnRenderCallback = (
+  id: string,
+  phase: "mount" | "update" | "nested-update",
+  actualDuration: number,
+  baseDuration: number,
+  startTime: number,
+  commitTime: number
+) => void;
+
+type ProfilerWrapperProps = {
+  children?: React.ReactNode;
+  noLogging?: boolean;
+};
+
+const ProfilerWrapper = ({ children, ...props }: ProfilerWrapperProps) => {
+  const onRender: ProfilerOnRenderCallback = (
+    id,
+    phase,
+    actualDuration,
+    baseDuration,
+    startTime
+  ) => {
+    if (!props.noLogging) {
+      console.debug({
+        startTime: Math.round(startTime),
+        id,
+        phase,
+        actualDuration: `${Math.round(actualDuration)} ms`,
+        baseDuration: `${Math.round(baseDuration)} ms`,
+      });
+    }
+  };
+
+  return (
+    <Profiler id="App" onRender={onRender}>
+      {children}
+    </Profiler>
   );
 };

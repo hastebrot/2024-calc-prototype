@@ -1,5 +1,9 @@
 # calc-prototype
 
+**continuous deployment:**
+
+- https://calc-prototype-git-main-hastebrot.vercel.app
+
 **usage:**
 
 - `❯ git clone https://github.com/hastebrot/calc-prototype`
@@ -27,6 +31,10 @@ tailwind css
 - `❯ bun add -d tailwindcss postcss autoprefixer`
 - `❯ bunx tailwindcss init --postcss --esm`
 - more: https://tailwindcss.com/docs/guides/vite
+
+clsx helper
+
+- `❯ bun add -d clsx`
 
 lucide icons
 
