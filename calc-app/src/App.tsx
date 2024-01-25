@@ -2,7 +2,7 @@ import { clsx } from "clsx";
 import { derive } from "derive-valtio";
 import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
-import { Fragment, useCallback } from "react";
+import { Fragment, Profiler, memo, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { deepClone } from "valtio/utils";
 import { Zod, z } from "./helper/zod";
@@ -120,8 +120,9 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
-boardFixture.sections = Array.from({ length: 100 }).flatMap(() => {
-  return deepClone(boardFixture.sections);
+const numOfSections = 100; // 100
+boardFixture.sections = Array.from({ length: numOfSections }).flatMap(() => {
+  return deepClone(boardFixture.sections.map((section) => ({ ...section, id: nanoid(20) })));
 });
 
 const appState = deriveBoard(proxy(boardFixture));
@@ -136,26 +137,76 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const App = () => {
-  const title = useSnapshot(appState).title;
-  const subtotal = useSnapshot(appState).subtotal ?? 0;
   useSnapshot(appState.sections);
   const sections = appState.sections;
 
   return (
-    <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
-      <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
-        <div className="flex items-center justify-between">
-          <span>{title}</span>
-          <div>
-            <span>&Sigma; Total =</span> <span>{moneyFormat.format(subtotal)}</span>
-          </div>
+    <AppProfiler>
+      <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
+        <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
+          <AppBoardHeader board={appState} />
+        </div>
+
+        <div className="p-4 text-[#0F203C]">
+          {sections.map((section) => {
+            return <AppBoardSection key={section.id} section={section} sections={sections} />;
+          })}
         </div>
       </div>
+    </AppProfiler>
+  );
+};
 
-      <div className="p-4 text-[#0F203C]">
-        {sections.map((section) => {
-          return <AppBoardSection key={section.id} section={section} sections={sections} />;
-        })}
+type ProfilerOnRenderCallback = (
+  id: string,
+  phase: "mount" | "update" | "nested-update",
+  actualDuration: number,
+  baseDuration: number,
+  startTime: number,
+  commitTime: number
+) => void;
+
+type AppProfilerProps = {
+  children?: React.ReactNode;
+};
+
+const AppProfiler = ({ children }: AppProfilerProps) => {
+  const onRender: ProfilerOnRenderCallback = (
+    id,
+    phase,
+    actualDuration,
+    baseDuration,
+    startTime
+  ) => {
+    console.debug({
+      startTime: Math.round(startTime),
+      id,
+      phase,
+      actualDuration: `${Math.round(actualDuration)} ms`,
+      baseDuration: `${Math.round(baseDuration)} ms`,
+    });
+  };
+
+  return (
+    <Profiler id="App" onRender={onRender}>
+      {children}
+    </Profiler>
+  );
+};
+
+type AppBoardHeaderProps = {
+  board: z.infer<typeof BoardSchema>;
+};
+
+const AppBoardHeader = (props: AppBoardHeaderProps) => {
+  const title = useSnapshot(props.board).title;
+  const subtotal = useSnapshot(props.board).subtotal ?? 0;
+
+  return (
+    <div className="flex items-center justify-between">
+      <span>{title}</span>
+      <div>
+        <span>&Sigma; Total =</span> <span>{moneyFormat.format(subtotal)}</span>
       </div>
     </div>
   );
@@ -166,8 +217,9 @@ type AppBoardSectionProps = {
   sections: z.infer<typeof SectionSchema>[];
 };
 
-const AppBoardSection = (props: AppBoardSectionProps) => {
+const AppBoardSection = memo((props: AppBoardSectionProps) => {
   const isCollapsed = useSnapshot(props.section).isCollapsed;
+  useSnapshot(props.section.subsections);
 
   return (
     <Board key={props.section.id}>
@@ -187,7 +239,7 @@ const AppBoardSection = (props: AppBoardSectionProps) => {
       )}
     </Board>
   );
-};
+});
 
 type AppBoardSubsectionProps = {
   subsection: z.infer<typeof SubsectionSchema>;
@@ -335,7 +387,7 @@ type ItemProps = {
 
 const Item = (props: ItemProps) => {
   const name = useSnapshot(props.item).name;
-  const subtotal = useSnapshot(props.item).subtotal ?? 0;
+  const subtotal = useSnapshot(props.item, { sync: true }).subtotal ?? 0;
   const onChangeSubtotal = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = parseFloat(event.currentTarget.value);
