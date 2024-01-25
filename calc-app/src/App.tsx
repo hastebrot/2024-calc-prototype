@@ -148,11 +148,11 @@ export const App = () => {
 
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
-      <div className="sticky top-0 p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
+      <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
         <div className="flex items-center justify-between">
           <span>{title}</span>
           <div>
-            <span>Total:</span> <span>{moneyFormat.format(subtotal)}</span>
+            <span>&Sigma; Total =</span> <span>{moneyFormat.format(subtotal)}</span>
           </div>
         </div>
       </div>
@@ -247,6 +247,7 @@ const Subsection = (props: SubsectionProps) => {
     </div>
   );
 };
+
 type ItemProps = {
   item: z.infer<typeof ItemSchema>;
 };

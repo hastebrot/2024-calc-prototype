@@ -1,9 +1,9 @@
-import { z, type ZodTypeDef } from "zod";
+import { z } from "zod";
 
 export { z };
 
 export const Zod = {
-  parse<T>(schema: z.ZodType<T, ZodTypeDef, T>, value: T): T {
+  parse<T>(schema: z.ZodType<T, z.ZodTypeDef, T>, value: T): T {
     try {
       return schema.parse(value);
     } catch (error: unknown) {
