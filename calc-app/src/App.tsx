@@ -1,7 +1,7 @@
-// import { derive } from "derive-valtio";
+import { derive } from "derive-valtio";
 import * as Lucide from "lucide-react";
 import { nanoid } from "nanoid";
-import { Fragment, useCallback } from "react";
+import { Fragment, useCallback, useRef } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { Zod, z } from "./helper/zod";
 
@@ -33,18 +33,41 @@ const BoardSchema = z.object({
 
 type Board = z.infer<typeof BoardSchema>;
 
+const deriveSection = (section: z.infer<typeof SectionSchema>) => {
+  return derive({}, { proxy: section });
+};
+
 const exampleBoard = Zod.parse(BoardSchema, {
   title: "Beispielkalkulation",
+  get subtotal() {
+    let sum = 0;
+    for (const section of this.sections ?? []) {
+      sum += section.subtotal ?? 0;
+    }
+    return sum;
+  },
   sections: [
-    {
+    deriveSection({
       id: nanoid(10),
       name: "Gagen",
-      subtotal: 7300,
+      // get subtotal() {
+      //   let sum = 0;
+      //   for (const subsection of this.subsections ?? []) {
+      //     sum += subsection.subtotal ?? 0;
+      //   }
+      //   return sum;
+      // },
       subsections: [
         {
           id: nanoid(10),
           name: "Produktionsstab",
-          subtotal: 2700,
+          get subtotal() {
+            let sum = 0;
+            for (const item of this.items ?? []) {
+              sum += item.subtotal ?? 0;
+            }
+            return sum;
+          },
           items: [
             { id: nanoid(10), name: "Produzent", subtotal: 1000 },
             { id: nanoid(10), name: "Produktionsleitung", subtotal: 900 },
@@ -54,7 +77,13 @@ const exampleBoard = Zod.parse(BoardSchema, {
         {
           id: nanoid(10),
           name: "Regiestab",
-          subtotal: 2700,
+          get subtotal() {
+            let sum = 0;
+            for (const item of this.items ?? []) {
+              sum += item.subtotal ?? 0;
+            }
+            return sum;
+          },
           items: [
             { id: nanoid(10), name: "Regie", subtotal: 1000 },
             { id: nanoid(10), name: "1. Regieassistenz", subtotal: 900 },
@@ -64,14 +93,20 @@ const exampleBoard = Zod.parse(BoardSchema, {
         {
           id: nanoid(10),
           name: "Kamerastab",
-          subtotal: 1900,
+          get subtotal() {
+            let sum = 0;
+            for (const item of this.items ?? []) {
+              sum += item.subtotal ?? 0;
+            }
+            return sum;
+          },
           items: [
             { id: nanoid(10), name: "Kamera", subtotal: 1000 },
             { id: nanoid(10), name: "1. Kameraassistenz", subtotal: 900 },
           ],
         },
       ],
-    },
+    }),
   ],
 });
 
@@ -84,12 +119,16 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 
 export const App = () => {
   const title = useSnapshot(appState).title;
+  const subtotal = useSnapshot(appState).subtotal ?? 0;
   const sections = appState.sections;
 
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
       <div className="p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
-        <span>{title}</span>
+        <div className="flex items-center justify-between">
+          <span>{title}</span>
+          <Subtotal value={subtotal} />
+        </div>
       </div>
 
       <div className="p-4 text-[#0F203C]">
@@ -145,7 +184,18 @@ type SectionProps = {
 
 const Section = (props: SectionProps) => {
   const name = useSnapshot(props.section).name;
-  const subtotal = useSnapshot(props.section).subtotal ?? 0;
+  const derived = useRef(
+    derive({
+      subtotal: (get) => {
+        let sum = 0;
+        for (const subsection of props.section.subsections ?? []) {
+          sum += get(subsection).subtotal ?? 0;
+        }
+        return sum;
+      },
+    })
+  ).current;
+  const subtotal = useSnapshot(derived).subtotal;
 
   return (
     <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2 pr-3">
@@ -155,7 +205,7 @@ const Section = (props: SectionProps) => {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
+        <Subtotal value={subtotal} />
         <Lucide.Trash2 size={18} />
       </div>
     </div>
@@ -168,7 +218,18 @@ type SubsectionProps = {
 
 const Subsection = (props: SubsectionProps) => {
   const name = useSnapshot(props.subsection).name;
-  const subtotal = useSnapshot(props.subsection).subtotal ?? 0;
+  const derived = useRef(
+    derive({
+      subtotal: (get) => {
+        let sum = 0;
+        for (const item of props.subsection.items ?? []) {
+          sum += get(item).subtotal ?? 0;
+        }
+        return sum;
+      },
+    })
+  ).current;
+  const subtotal = useSnapshot(derived).subtotal;
 
   return (
     <div className="flex items-center justify-between py-4 px-2 pr-3">
@@ -178,7 +239,7 @@ const Subsection = (props: SubsectionProps) => {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
+        <Subtotal value={subtotal} />
         <Lucide.Trash2 size={18} />
       </div>
     </div>
@@ -235,9 +296,17 @@ const Item = (props: ItemProps) => {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
+        <Subtotal value={subtotal} />
         <Lucide.X size={18} />
       </div>
     </div>
   );
+};
+
+type SubtotalProps = {
+  value: number;
+};
+
+const Subtotal = (props: SubtotalProps) => {
+  return <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(props.value)}</div>;
 };
