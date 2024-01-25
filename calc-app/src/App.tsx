@@ -16,7 +16,7 @@ const ItemSchema = z.object({
 const SubsectionSchema = z.object({
   id: z.string(),
   name: z.string(),
-  items: z.array(ItemSchema).optional(),
+  items: z.array(ItemSchema).default([]),
   subtotal: z.number().optional(),
   isCollapsed: z.boolean().optional(),
 });
@@ -24,14 +24,14 @@ const SubsectionSchema = z.object({
 const SectionSchema = z.object({
   id: z.string(),
   name: z.string(),
-  subsections: z.array(SubsectionSchema).optional(),
+  subsections: z.array(SubsectionSchema).default([]),
   subtotal: z.number().optional(),
   isCollapsed: z.boolean().optional(),
 });
 
 const BoardSchema = z.object({
   title: z.string(),
-  sections: z.array(SectionSchema).optional(),
+  sections: z.array(SectionSchema).default([]),
   subtotal: z.number().optional(),
 });
 
@@ -80,7 +80,7 @@ const deriveBoard = (board: z.infer<typeof BoardSchema>) => {
     {
       subtotal(get) {
         let sum = 0;
-        for (const section of get(board).sections ?? []) {
+        for (const section of get(board).sections) {
           sum += get(section).subtotal ?? 0;
         }
         return sum;
@@ -95,7 +95,7 @@ const deriveSection = (section: z.infer<typeof SectionSchema>) => {
     {
       subtotal(get) {
         let sum = 0;
-        for (const subsection of get(section).subsections ?? []) {
+        for (const subsection of get(section).subsections) {
           sum += get(subsection).subtotal ?? 0;
         }
         return sum;
@@ -110,7 +110,7 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
     {
       subtotal(get) {
         let sum = 0;
-        for (const item of get(subsection).items ?? []) {
+        for (const item of get(subsection).items) {
           sum += get(item).subtotal ?? 0;
         }
         return sum;
@@ -121,22 +121,22 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
 };
 
 boardFixture.sections = [
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
+  ...deepClone(boardFixture.sections),
 ];
 
 const appState = deriveBoard(proxy(boardFixture));
-appState.sections = appState.sections?.map(deriveSection);
-for (const section of appState.sections ?? []) {
-  section.subsections = section.subsections?.map(deriveSubsection);
+appState.sections = appState.sections.map(deriveSection);
+for (const section of appState.sections) {
+  section.subsections = section.subsections.map(deriveSubsection);
 }
 
 const moneyFormat = new Intl.NumberFormat("en-US", {
@@ -147,7 +147,7 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 export const App = () => {
   const title = useSnapshot(appState).title;
   const subtotal = useSnapshot(appState).subtotal ?? 0;
-  useSnapshot(appState.sections!);
+  useSnapshot(appState.sections);
   const sections = appState.sections;
 
   return (
@@ -162,8 +162,8 @@ export const App = () => {
       </div>
 
       <div className="p-4 text-[#0F203C]">
-        {sections?.map((section) => {
-          return <AppBoardSection key={section.id} section={section} sections={sections!} />;
+        {sections.map((section) => {
+          return <AppBoardSection key={section.id} section={section} sections={sections} />;
         })}
       </div>
     </div>
@@ -183,12 +183,12 @@ const AppBoardSection = (props: AppBoardSectionProps) => {
       <Section section={props.section} sections={props.sections} />
       {!props.section.isCollapsed && (
         <div className="border-t border-[#B8AE9C]">
-          {props.section.subsections?.map((subsection) => {
+          {props.section.subsections.map((subsection) => {
             return (
               <AppBoardSubsection
                 key={subsection.id}
                 subsection={subsection}
-                subsections={props.section.subsections!}
+                subsections={props.section.subsections}
               />
             );
           })}
@@ -206,7 +206,12 @@ type AppBoardSubsectionProps = {
 const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
   useSnapshot(props.subsection);
   const onClickAddItem = () => {
-    props.subsection.items?.push(proxy({ id: nanoid(10), name: "New item" }));
+    const item = Zod.parse(ItemSchema, {
+      id: nanoid(10),
+      name: "New item",
+      subtotal: 0,
+    });
+    props.subsection.items.push(item);
   };
 
   return (
@@ -214,8 +219,8 @@ const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
       <Subsection subsection={props.subsection} subsections={props.subsections}></Subsection>
       {!props.subsection.isCollapsed && (
         <Group>
-          {props.subsection.items?.map((item) => {
-            return <Item key={item.id} item={item} items={props.subsection.items!} />;
+          {props.subsection.items.map((item) => {
+            return <Item key={item.id} item={item} items={props.subsection.items} />;
           })}
 
           <div className="flex items-center justify-between py-2 px-2">
