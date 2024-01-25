@@ -1,5 +1,9 @@
 # calc-prototype
 
+**continuous deployment:**
+
+- https://calc-prototype-git-main-hastebrot.vercel.app
+
 **usage:**
 
 - `❯ git clone https://github.com/hastebrot/calc-prototype`
