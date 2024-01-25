@@ -196,6 +196,13 @@ type AppBoardSectionProps = {
 const AppBoardSection = memo((props: AppBoardSectionProps) => {
   useSnapshot(props.section.subsections);
   const isCollapsed = useSnapshot(props.section).isCollapsed;
+  const onClickAddSubsection = () => {
+    const subsection = Zod.parse(SubsectionSchema, {
+      id: nanoid(10),
+      name: "New subsection",
+    });
+    props.section.subsections.push(deriveSubsection(proxy(subsection)));
+  };
 
   return (
     <Board key={props.section.id}>
@@ -211,6 +218,13 @@ const AppBoardSection = memo((props: AppBoardSectionProps) => {
               />
             );
           })}
+          <button
+            className="inline-flex items-center gap-2 mt-4 ml-2"
+            onClick={onClickAddSubsection}
+          >
+            <icons.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
+            <div>Add subsection</div>
+          </button>
         </div>
       )}
     </Board>
