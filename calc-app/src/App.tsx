@@ -1,7 +1,7 @@
 import { derive } from "derive-valtio";
 import * as Lucide from "lucide-react";
 import { nanoid } from "nanoid";
-import { Fragment, useCallback, useRef } from "react";
+import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { Zod, z } from "./helper/zod";
 
@@ -33,21 +33,17 @@ const BoardSchema = z.object({
 
 type Board = z.infer<typeof BoardSchema>;
 
-const deriveSection = (section: z.infer<typeof SectionSchema>) => {
-  return derive({}, { proxy: section });
-};
-
 const exampleBoard = Zod.parse(BoardSchema, {
   title: "Beispielkalkulation",
-  get subtotal() {
-    let sum = 0;
-    for (const section of this.sections ?? []) {
-      sum += section.subtotal ?? 0;
-    }
-    return sum;
-  },
+  // get subtotal() {
+  //   let sum = 0;
+  //   for (const section of this.sections ?? []) {
+  //     sum += section.subtotal ?? 0;
+  //   }
+  //   return sum;
+  // },
   sections: [
-    deriveSection({
+    {
       id: nanoid(10),
       name: "Gagen",
       // get subtotal() {
@@ -61,13 +57,13 @@ const exampleBoard = Zod.parse(BoardSchema, {
         {
           id: nanoid(10),
           name: "Produktionsstab",
-          get subtotal() {
-            let sum = 0;
-            for (const item of this.items ?? []) {
-              sum += item.subtotal ?? 0;
-            }
-            return sum;
-          },
+          // get subtotal() {
+          //   let sum = 0;
+          //   for (const item of this.items ?? []) {
+          //     sum += item.subtotal ?? 0;
+          //   }
+          //   return sum;
+          // },
           items: [
             { id: nanoid(10), name: "Produzent", subtotal: 1000 },
             { id: nanoid(10), name: "Produktionsleitung", subtotal: 900 },
@@ -77,13 +73,13 @@ const exampleBoard = Zod.parse(BoardSchema, {
         {
           id: nanoid(10),
           name: "Regiestab",
-          get subtotal() {
-            let sum = 0;
-            for (const item of this.items ?? []) {
-              sum += item.subtotal ?? 0;
-            }
-            return sum;
-          },
+          // get subtotal() {
+          //   let sum = 0;
+          //   for (const item of this.items ?? []) {
+          //     sum += item.subtotal ?? 0;
+          //   }
+          //   return sum;
+          // },
           items: [
             { id: nanoid(10), name: "Regie", subtotal: 1000 },
             { id: nanoid(10), name: "1. Regieassistenz", subtotal: 900 },
@@ -93,24 +89,73 @@ const exampleBoard = Zod.parse(BoardSchema, {
         {
           id: nanoid(10),
           name: "Kamerastab",
-          get subtotal() {
-            let sum = 0;
-            for (const item of this.items ?? []) {
-              sum += item.subtotal ?? 0;
-            }
-            return sum;
-          },
+          // get subtotal() {
+          //   let sum = 0;
+          //   for (const item of this.items ?? []) {
+          //     sum += item.subtotal ?? 0;
+          //   }
+          //   return sum;
+          // },
           items: [
             { id: nanoid(10), name: "Kamera", subtotal: 1000 },
             { id: nanoid(10), name: "1. Kameraassistenz", subtotal: 900 },
           ],
         },
       ],
-    }),
+    },
   ],
 });
 
-const appState = proxy(exampleBoard);
+const deriveBoard = (board: z.infer<typeof BoardSchema>) => {
+  return derive(
+    {
+      subtotal(get) {
+        let sum = 0;
+        for (const section of board.sections ?? []) {
+          sum += get(section).subtotal ?? 0;
+        }
+        return sum;
+      },
+    },
+    { proxy: board }
+  );
+};
+
+const deriveSection = (section: z.infer<typeof SectionSchema>) => {
+  return derive(
+    {
+      subtotal(get) {
+        let sum = 0;
+        for (const subsection of section.subsections ?? []) {
+          sum += get(subsection).subtotal ?? 0;
+        }
+        return sum;
+      },
+    },
+    { proxy: section }
+  );
+};
+
+const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
+  return derive(
+    {
+      subtotal(get) {
+        let sum = 0;
+        for (const item of subsection.items ?? []) {
+          sum += get(item).subtotal ?? 0;
+        }
+        return sum;
+      },
+    },
+    { proxy: subsection }
+  );
+};
+
+const appState = deriveBoard(proxy(exampleBoard));
+appState.sections = appState.sections?.map(deriveSection);
+for (const section of appState.sections ?? []) {
+  section.subsections = section.subsections?.map(deriveSubsection);
+}
 
 const moneyFormat = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -184,18 +229,7 @@ type SectionProps = {
 
 const Section = (props: SectionProps) => {
   const name = useSnapshot(props.section).name;
-  const derived = useRef(
-    derive({
-      subtotal: (get) => {
-        let sum = 0;
-        for (const subsection of props.section.subsections ?? []) {
-          sum += get(subsection).subtotal ?? 0;
-        }
-        return sum;
-      },
-    })
-  ).current;
-  const subtotal = useSnapshot(derived).subtotal;
+  const subtotal = useSnapshot(props.section).subtotal ?? 0;
 
   return (
     <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2 pr-3">
@@ -218,18 +252,7 @@ type SubsectionProps = {
 
 const Subsection = (props: SubsectionProps) => {
   const name = useSnapshot(props.subsection).name;
-  const derived = useRef(
-    derive({
-      subtotal: (get) => {
-        let sum = 0;
-        for (const item of props.subsection.items ?? []) {
-          sum += get(item).subtotal ?? 0;
-        }
-        return sum;
-      },
-    })
-  ).current;
-  const subtotal = useSnapshot(derived).subtotal;
+  const subtotal = useSnapshot(props.subsection).subtotal ?? 0;
 
   return (
     <div className="flex items-center justify-between py-4 px-2 pr-3">
@@ -255,7 +278,7 @@ const Item = (props: ItemProps) => {
   const onChangeSubtotal = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = parseFloat(event.currentTarget.value);
-      const number = isNaN(value) ? 0 : value;
+      const number = isNaN(value) ? 0 : Math.abs(value);
       props.item.subtotal = number;
     },
     [props.item]
