@@ -34,37 +34,16 @@ const BoardSchema = z.object({
 
 type Board = z.infer<typeof BoardSchema>;
 
-const exampleBoard = Zod.parse(BoardSchema, {
+const boardFixture = Zod.parse(BoardSchema, {
   title: "Beispielkalkulation",
-  // get subtotal() {
-  //   let sum = 0;
-  //   for (const section of this.sections ?? []) {
-  //     sum += section.subtotal ?? 0;
-  //   }
-  //   return sum;
-  // },
   sections: [
     {
       id: nanoid(10),
       name: "Gagen",
-      // get subtotal() {
-      //   let sum = 0;
-      //   for (const subsection of this.subsections ?? []) {
-      //     sum += subsection.subtotal ?? 0;
-      //   }
-      //   return sum;
-      // },
       subsections: [
         {
           id: nanoid(10),
           name: "Produktionsstab",
-          // get subtotal() {
-          //   let sum = 0;
-          //   for (const item of this.items ?? []) {
-          //     sum += item.subtotal ?? 0;
-          //   }
-          //   return sum;
-          // },
           items: [
             { id: nanoid(10), name: "Produzent", subtotal: 1000 },
             { id: nanoid(10), name: "Produktionsleitung", subtotal: 900 },
@@ -74,13 +53,6 @@ const exampleBoard = Zod.parse(BoardSchema, {
         {
           id: nanoid(10),
           name: "Regiestab",
-          // get subtotal() {
-          //   let sum = 0;
-          //   for (const item of this.items ?? []) {
-          //     sum += item.subtotal ?? 0;
-          //   }
-          //   return sum;
-          // },
           items: [
             { id: nanoid(10), name: "Regie", subtotal: 1000 },
             { id: nanoid(10), name: "1. Regieassistenz", subtotal: 900 },
@@ -90,13 +62,6 @@ const exampleBoard = Zod.parse(BoardSchema, {
         {
           id: nanoid(10),
           name: "Kamerastab",
-          // get subtotal() {
-          //   let sum = 0;
-          //   for (const item of this.items ?? []) {
-          //     sum += item.subtotal ?? 0;
-          //   }
-          //   return sum;
-          // },
           items: [
             { id: nanoid(10), name: "Kamera", subtotal: 1000 },
             { id: nanoid(10), name: "1. Kameraassistenz", subtotal: 900 },
@@ -152,20 +117,20 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
-exampleBoard.sections = [
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
+boardFixture.sections = [
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
 ];
 
-const appState = deriveBoard(proxy(exampleBoard));
+const appState = deriveBoard(proxy(boardFixture));
 appState.sections = appState.sections?.map(deriveSection);
 for (const section of appState.sections ?? []) {
   section.subsections = section.subsections?.map(deriveSubsection);
