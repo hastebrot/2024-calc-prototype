@@ -137,22 +137,34 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const App = () => {
-  useSnapshot(board.sections);
-
   return (
     <ProfilerWrapper noLogging>
-      <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
-        <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
-          <AppBoardHeader board={board} />
-        </div>
-
-        <div className="p-4 text-[#0F203C]">
-          {board.sections.map((section) => {
-            return <AppBoardSection key={section.id} section={section} sections={board.sections} />;
-          })}
-        </div>
-      </div>
+      <AppBoard board={board} />
     </ProfilerWrapper>
+  );
+};
+
+type AppBoardProps = {
+  board: z.infer<typeof BoardSchema>;
+};
+
+const AppBoard = (props: AppBoardProps) => {
+  useSnapshot(props.board.sections);
+
+  return (
+    <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
+      <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
+        <AppBoardHeader board={props.board} />
+      </div>
+
+      <div className="p-4 text-[#0F203C]">
+        {props.board.sections.map((section) => {
+          return (
+            <AppBoardSection key={section.id} section={section} sections={props.board.sections} />
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
