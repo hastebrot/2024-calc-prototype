@@ -1,3 +1,4 @@
+import { clsx } from "clsx";
 import { derive } from "derive-valtio";
 import * as Lucide from "lucide-react";
 import { nanoid } from "nanoid";
@@ -5,15 +6,14 @@ import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { deepClone } from "valtio/utils";
 import { Zod, z } from "./helper/zod";
-import { clsx } from "clsx";
 
-const ItemSchema = z.object({
+const ItemSchema = Zod.object("Item", {
   id: z.string(),
   name: z.string(),
   subtotal: z.number().optional(),
 });
 
-const SubsectionSchema = z.object({
+const SubsectionSchema = Zod.object("Subsection", {
   id: z.string(),
   name: z.string(),
   items: z.array(ItemSchema).default([]),
@@ -21,7 +21,7 @@ const SubsectionSchema = z.object({
   isCollapsed: z.boolean().optional(),
 });
 
-const SectionSchema = z.object({
+const SectionSchema = Zod.object("Section", {
   id: z.string(),
   name: z.string(),
   subsections: z.array(SubsectionSchema).default([]),
@@ -29,7 +29,7 @@ const SectionSchema = z.object({
   isCollapsed: z.boolean().optional(),
 });
 
-const BoardSchema = z.object({
+const BoardSchema = Zod.object("Board", {
   title: z.string(),
   sections: z.array(SectionSchema).default([]),
   subtotal: z.number().optional(),
