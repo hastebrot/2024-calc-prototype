@@ -1,135 +1,17 @@
 import { clsx } from "clsx";
-import { derive } from "derive-valtio";
 import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
-import { Fragment, Profiler, memo, useCallback, useRef } from "react";
+import { Fragment, Profiler, memo, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
-import { deepClone } from "valtio/utils";
 import { Zod, z } from "./helper/zod";
-
-const ItemSchema = Zod.object("Item", {
-  id: z.string(),
-  name: z.string(),
-  subtotal: z.number(),
-});
-
-const SubsectionSchema = Zod.object("Subsection", {
-  id: z.string(),
-  name: z.string(),
-  items: z.array(ItemSchema).default([]),
-  subtotal: z.number().optional(),
-  isCollapsed: z.boolean().optional(),
-});
-
-const SectionSchema = Zod.object("Section", {
-  id: z.string(),
-  name: z.string(),
-  subsections: z.array(SubsectionSchema).default([]),
-  subtotal: z.number().optional(),
-  isCollapsed: z.boolean().optional(),
-});
-
-const BoardSchema = Zod.object("Board", {
-  title: z.string(),
-  sections: z.array(SectionSchema).default([]),
-  subtotal: z.number().optional(),
-});
-
-type Board = z.infer<typeof BoardSchema>;
-
-const boardFixture = Zod.parse(BoardSchema, {
-  title: "Beispielkalkulation",
-  sections: [
-    {
-      id: nanoid(10),
-      name: "Gagen",
-      subsections: [
-        {
-          id: nanoid(10),
-          name: "Produktionsstab",
-          items: [
-            { id: nanoid(10), name: "Produzent", subtotal: 1000 },
-            { id: nanoid(10), name: "Produktionsleitung", subtotal: 900 },
-            { id: nanoid(10), name: "1. Aufnahmeleitung", subtotal: 800 },
-          ],
-        },
-        {
-          id: nanoid(10),
-          name: "Regiestab",
-          items: [
-            { id: nanoid(10), name: "Regie", subtotal: 1000 },
-            { id: nanoid(10), name: "1. Regieassistenz", subtotal: 900 },
-            { id: nanoid(10), name: "Script / Continuity", subtotal: 800 },
-          ],
-        },
-        {
-          id: nanoid(10),
-          name: "Kamerastab",
-          items: [
-            { id: nanoid(10), name: "Kamera", subtotal: 1000 },
-            { id: nanoid(10), name: "1. Kameraassistenz", subtotal: 900 },
-          ],
-        },
-      ],
-    },
-  ],
-});
-
-const deriveBoard = (board: z.infer<typeof BoardSchema>) => {
-  return derive(
-    {
-      subtotal(get) {
-        let sum = 0;
-        for (const section of get(board).sections) {
-          sum += get(section).subtotal ?? 0;
-        }
-        return sum;
-      },
-    },
-    { proxy: board }
-  );
-};
-
-const deriveSection = (section: z.infer<typeof SectionSchema>) => {
-  return derive(
-    {
-      subtotal(get) {
-        let sum = 0;
-        for (const subsection of get(section).subsections) {
-          sum += get(subsection).subtotal ?? 0;
-        }
-        return sum;
-      },
-    },
-    { proxy: section }
-  );
-};
-
-const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
-  return derive(
-    {
-      subtotal(get) {
-        let sum = 0;
-        for (const item of get(subsection).items) {
-          sum += get(item).subtotal ?? 0;
-        }
-        return sum;
-      },
-    },
-    { proxy: subsection }
-  );
-};
-
-const numOfSections = 100;
-boardFixture.sections = Array.from({ length: numOfSections }).flatMap(() => {
-  return deepClone(boardFixture.sections.map((section) => ({ ...section, id: nanoid(20) })));
-});
-
-const board = deriveBoard(proxy(boardFixture));
-board.sections = board.sections.map(deriveSection);
-for (const section of board.sections) {
-  section.subsections = section.subsections.map(deriveSubsection);
-}
+import {
+  BoardSchema,
+  ItemSchema,
+  SectionSchema,
+  SubsectionSchema,
+  deriveSubsection,
+  store,
+} from "./store";
 
 const moneyFormat = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -137,11 +19,9 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const App = () => {
-  const boardRef = useRef(board);
-
   return (
     <ProfilerWrapper noLogging>
-      <AppBoard board={boardRef.current} />
+      <AppBoard board={store.board} />
     </ProfilerWrapper>
   );
 };
