@@ -24,6 +24,33 @@ const barProxy = derive({
 });
 
 export const App = () => {
+  return (
+    <div className="relative font-sans min-h-dvh">
+      <Bar />
+      <Foo />
+    </div>
+  );
+};
+
+const Bar = () => {
+  const { title } = useSnapshot(store, { sync: true });
+  const onChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.currentTarget.value;
+      store.title = value;
+    },
+    [store]
+  );
+
+  return (
+    <div className="p-4">
+      <div>title: {title}</div>
+      <input className="block w-full hover:bg-gray-300" value={title} onChange={onChange} />
+    </div>
+  );
+};
+
+const Foo = () => {
   const { title, count } = useSnapshot(store);
   const foo = useSnapshot(fooProxy);
   const bar = useSnapshot(barProxy);
@@ -31,10 +58,6 @@ export const App = () => {
     store.title = "foobar";
     store.count += 1;
   }, [store]);
-  const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.value;
-    store.title = value;
-  };
   const onClick2 = useCallback(() => {
     const item = { id: nanoid(10), name: "foo" };
     myProxy.items.push(item);
@@ -49,31 +72,28 @@ export const App = () => {
   const items = useSnapshot(myProxy.items);
 
   return (
-    <div className="relative font-sans min-h-dvh">
-      <div className="p-4">
-        <div>title: {title}</div>
-        <div>count: {count}</div>
-        <div>count: {foo.fooCount}</div>
-        <div>count: {bar.barCount}</div>
-        <button className="block hover:bg-gray-300" tabIndex={1} onClick={onClick}>
-          click
-        </button>
-        <input className="block w-full hover:bg-gray-300" value={title} onChange={onChange} />
-        <button className="block hover:bg-gray-300" tabIndex={1} onClick={onClick2}>
-          click
-        </button>
-        <div>
-          {items.map((item) => {
-            return (
-              <div className="flex gap-2" key={item.id}>
-                <span>{item.id}</span>
-                <button className="block hover:bg-gray-300" onClick={() => onClick3(item)}>
-                  remove
-                </button>
-              </div>
-            );
-          })}
-        </div>
+    <div className="p-4">
+      <div>title: {title}</div>
+      <div>count: {count}</div>
+      <div>count: {foo.fooCount}</div>
+      <div>count: {bar.barCount}</div>
+      <button className="block hover:bg-gray-300" tabIndex={1} onClick={onClick}>
+        click
+      </button>
+      <button className="block hover:bg-gray-300" tabIndex={1} onClick={onClick2}>
+        click
+      </button>
+      <div>
+        {items.map((item) => {
+          return (
+            <div className="flex gap-2" key={item.id}>
+              <span>{item.id}</span>
+              <button className="block hover:bg-gray-300" onClick={() => onClick3(item)}>
+                remove
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
