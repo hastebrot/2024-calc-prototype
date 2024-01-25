@@ -1,7 +1,7 @@
 // import { derive } from "derive-valtio";
 import * as Lucide from "lucide-react";
 import { nanoid } from "nanoid";
-import { Fragment } from "react";
+import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { Zod, z } from "./helper/zod";
 
@@ -189,6 +189,14 @@ type ItemProps = {
 const Item = (props: ItemProps) => {
   const name = useSnapshot(props.item).name;
   const subtotal = useSnapshot(props.item).subtotal ?? 0;
+  const onChangeSubtotal = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = parseFloat(event.currentTarget.value);
+      const number = isNaN(value) ? 0 : value;
+      props.item.subtotal = number;
+    },
+    [props.item]
+  );
 
   return (
     <div className="flex items-center justify-between py-2 px-2 pr-3">
@@ -207,7 +215,8 @@ const Item = (props: ItemProps) => {
           <label className="text-xs text-[#1C4E88] font-[600]">Price/Unit</label>
           <input
             className="pr-2 mr-4 max-w-[120px] border-r-0 border-[#888A90]"
-            defaultValue={subtotal}
+            value={subtotal}
+            onChange={onChangeSubtotal}
           />
         </div>
       </div>
