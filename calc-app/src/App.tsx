@@ -27,9 +27,10 @@ const barProxy = derive({
 export const App = () => {
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
-      <div className="p-4 bg-[#FFFFFF] font-[600]">
+      <div className="p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
         <span>Beispielkalkulation</span>
       </div>
+
       <div className="p-4 text-[#0F203C]">
         <Board>
           <Section>Gagen</Section>
@@ -94,7 +95,7 @@ const Section = ({ children }: SectionProps) => {
       </div>
       <div className="flex items-center gap-4">
         <div className="font-[600] text-sm tabular-nums">3000 EUR</div>
-        <Lucide.Trash size={18} />
+        <Lucide.Trash2 size={18} />
       </div>
     </div>
   );
@@ -113,7 +114,7 @@ const Subsection = ({ children }: SubsectionProps) => {
       </div>
       <div className="flex items-center gap-4">
         <div className="font-[600] text-sm tabular-nums">3000 EUR</div>
-        <Lucide.Trash size={18} />
+        <Lucide.Trash2 size={18} />
       </div>
     </div>
   );
