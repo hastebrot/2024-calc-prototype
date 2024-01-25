@@ -282,12 +282,12 @@ const Section = (props: SectionProps) => {
   const name = useSnapshot(props.section).name;
   const subtotal = useSnapshot(props.section).subtotal ?? 0;
   const isCollapsed = useSnapshot(props.section).isCollapsed;
-  const onClickRemoveSection = useCallback(() => {
+  const onClickRemoveSection = () => {
     const sectionIndex = props.sections.indexOf(props.section) ?? null;
     if (sectionIndex !== null) {
       props.sections.splice(sectionIndex, 1);
     }
-  }, [props.section, props.sections]);
+  };
   const onClickToggleCollapse = () => {
     props.section.isCollapsed = !props.section.isCollapsed;
   };
@@ -324,12 +324,12 @@ const Subsection = (props: SubsectionProps) => {
   const name = useSnapshot(props.subsection).name;
   const subtotal = useSnapshot(props.subsection).subtotal ?? 0;
   const isCollapsed = useSnapshot(props.subsection).isCollapsed;
-  const onClickRemoveSubsection = useCallback(() => {
+  const onClickRemoveSubsection = () => {
     const subsectionIndex = props.subsections.indexOf(props.subsection) ?? null;
     if (subsectionIndex !== null) {
       props.subsections.splice(subsectionIndex, 1);
     }
-  }, [props.subsection, props.subsections]);
+  };
   const onClickToggleCollapse = () => {
     props.subsection.isCollapsed = !props.subsection.isCollapsed;
   };
@@ -368,14 +368,14 @@ const Item = (props: ItemProps) => {
       const number = isNaN(value) ? 0 : Math.min(1e9, Math.abs(value));
       props.item.subtotal = number;
     },
-    [props.item, props.items]
+    [props.item]
   );
-  const onClickRemoveItem = useCallback(() => {
+  const onClickRemoveItem = () => {
     const itemIndex = props.items.indexOf(props.item) ?? null;
     if (itemIndex !== null) {
       props.items.splice(itemIndex, 1);
     }
-  }, [props.item, props.items]);
+  };
 
   return (
     <div className="flex items-center justify-between py-2 px-2">
