@@ -219,10 +219,10 @@ const AppBoardSection = memo((props: AppBoardSectionProps) => {
             );
           })}
           <button
-            className="inline-flex items-center gap-2 mt-4 ml-2"
+            className="inline-flex items-center gap-2 mt-4 ml-8 text-[#1C4E88]"
             onClick={onClickAddSubsection}
           >
-            <icons.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
+            <icons.PlusCircle className="flex-shrink-0" size={18} />
             <div>Add subsection</div>
           </button>
         </div>
@@ -258,8 +258,11 @@ const AppBoardSubsection = memo((props: AppBoardSubsectionProps) => {
           })}
 
           <div className="flex items-center justify-between py-2 px-2">
-            <button className="inline-flex items-center gap-2" onClick={onClickAddItem}>
-              <icons.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
+            <button
+              className="inline-flex items-center gap-2 ml-6 text-[#1C4E88]"
+              onClick={onClickAddItem}
+            >
+              <icons.PlusCircle className="flex-shrink-0" size={18} />
               <div>Add item</div>
             </button>
           </div>
