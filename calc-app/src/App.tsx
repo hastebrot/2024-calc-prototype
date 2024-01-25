@@ -3,8 +3,8 @@ import * as Lucide from "lucide-react";
 import { nanoid } from "nanoid";
 import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
-import { Zod, z } from "./helper/zod";
 import { deepClone } from "valtio/utils";
+import { Zod, z } from "./helper/zod";
 
 const ItemSchema = z.object({
   id: z.string(),
