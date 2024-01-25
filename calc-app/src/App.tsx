@@ -8,59 +8,66 @@ import { Zod, z } from "./helper/zod";
 const ItemSchema = z.object({
   id: z.string(),
   name: z.string(),
-  price: z.number().optional(),
+  subtotal: z.number().optional(),
 });
 
 const SubsectionSchema = z.object({
   id: z.string(),
   name: z.string(),
   items: z.array(ItemSchema).optional(),
+  subtotal: z.number().optional(),
 });
 
 const SectionSchema = z.object({
   id: z.string(),
   name: z.string(),
   subsections: z.array(SubsectionSchema).optional(),
+  subtotal: z.number().optional(),
 });
 
 const BoardSchema = z.object({
-  name: z.string(),
+  title: z.string(),
   sections: z.array(SectionSchema).optional(),
+  subtotal: z.number().optional(),
 });
 
 type Board = z.infer<typeof BoardSchema>;
 
 const exampleBoard = Zod.parse(BoardSchema, {
-  name: "Beispielkalkulation",
+  title: "Beispielkalkulation",
   sections: [
     {
       id: nanoid(10),
       name: "Gagen",
+      subtotal: 7300,
       subsections: [
         {
           id: nanoid(10),
           name: "Produktionsstab",
+          subtotal: 2700,
           items: [
-            { id: nanoid(10), name: "Produzent", price: 1000 },
-            { id: nanoid(10), name: "Produktionsleitung", price: 900 },
-            { id: nanoid(10), name: "1. Aufnahmeleitung", price: 800 },
+            { id: nanoid(10), name: "Produzent", subtotal: 1000 },
+            { id: nanoid(10), name: "Produktionsleitung", subtotal: 900 },
+            { id: nanoid(10), name: "1. Aufnahmeleitung", subtotal: 800 },
           ],
         },
         {
           id: nanoid(10),
           name: "Regiestab",
+          subtotal: 2700,
           items: [
-            { id: nanoid(10), name: "Regie", price: 1000 },
-            { id: nanoid(10), name: "1. Regieassistenz", price: 900 },
-            { id: nanoid(10), name: "Script / Continuity", price: 800 },
+            { id: nanoid(10), name: "Regie", subtotal: 1000 },
+            { id: nanoid(10), name: "1. Regieassistenz", subtotal: 900 },
+            { id: nanoid(10), name: "Script / Continuity", subtotal: 800 },
           ],
         },
         {
           id: nanoid(10),
           name: "Kamerastab",
+          subtotal: 1900,
           items: [
-            { id: nanoid(10), name: "Kamera", price: 1000 },
-            { id: nanoid(10), name: "1. Kameraassistenz", price: 900 },
+            { id: nanoid(10), name: "Kamera", subtotal: 1000 },
+            { id: nanoid(10), name: "1. Kameraassistenz", subtotal: 900 },
           ],
         },
       ],
@@ -76,12 +83,13 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 });
 
 export const App = () => {
+  const title = useSnapshot(appState).title;
   const sections = appState.sections;
 
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
       <div className="p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
-        <span>Beispielkalkulation</span>
+        <span>{title}</span>
       </div>
 
       <div className="p-4 text-[#0F203C]">
@@ -89,18 +97,14 @@ export const App = () => {
           {sections?.map((section) => {
             return (
               <Fragment key={section.id}>
-                <Section>{section.name}</Section>
+                <Section section={section} />
                 {section.subsections?.map((subsection) => {
                   return (
                     <Fragment key={subsection.id}>
-                      <Subsection>{subsection.name}</Subsection>
+                      <Subsection subsection={subsection}></Subsection>
                       <Group>
                         {subsection.items?.map((item) => {
-                          return (
-                            <Item key={item.id} item={item}>
-                              {item.name}
-                            </Item>
-                          );
+                          return <Item key={item.id} item={item} />;
                         })}
                       </Group>
                     </Fragment>
@@ -136,18 +140,21 @@ const Group = ({ children }: GroupProps) => {
 };
 
 type SectionProps = {
-  children?: React.ReactNode;
+  section: z.infer<typeof SectionSchema>;
 };
 
-const Section = ({ children }: SectionProps) => {
+const Section = (props: SectionProps) => {
+  const name = useSnapshot(props.section).name;
+  const subtotal = useSnapshot(props.section).subtotal ?? 0;
+
   return (
     <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2 pr-3">
       <div className="font-[600] flex items-center gap-2">
         <Lucide.ChevronDown size={18} />
-        <span>{children}</span>
+        <span>{name}</span>
       </div>
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(3000)}</div>
+        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
         <Lucide.Trash2 size={18} />
       </div>
     </div>
@@ -155,30 +162,33 @@ const Section = ({ children }: SectionProps) => {
 };
 
 type SubsectionProps = {
-  children?: React.ReactNode;
+  subsection: z.infer<typeof SubsectionSchema>;
 };
 
-const Subsection = ({ children }: SubsectionProps) => {
+const Subsection = (props: SubsectionProps) => {
+  const name = useSnapshot(props.subsection).name;
+  const subtotal = useSnapshot(props.subsection).subtotal ?? 0;
+
   return (
     <div className="flex items-center justify-between py-4 px-2 pr-3">
       <div className="flex items-center gap-2">
         <Lucide.ChevronDown size={18} />
-        <span>{children}</span>
+        <span>{name}</span>
       </div>
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(3000)}</div>
+        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
         <Lucide.Trash2 size={18} />
       </div>
     </div>
   );
 };
 type ItemProps = {
-  children?: React.ReactNode;
   item: z.infer<typeof ItemSchema>;
 };
 
-const Item = ({ children, ...props }: ItemProps) => {
-  const price = useSnapshot(props.item).price ?? 0;
+const Item = (props: ItemProps) => {
+  const name = useSnapshot(props.item).name;
+  const subtotal = useSnapshot(props.item).subtotal ?? 0;
 
   return (
     <div className="flex items-center justify-between py-2 px-2 pr-3">
@@ -188,7 +198,7 @@ const Item = ({ children, ...props }: ItemProps) => {
           <label className="text-xs text-[#1C4E88] font-[600]">Description</label>
           <input
             className="pr-2 mr-4 max-w-[220px] border-r border-[#888A90]"
-            defaultValue={children as string}
+            defaultValue={name}
           />
           <label className="text-xs text-[#1C4E88] font-[600]">Amount</label>
           <input className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90]" defaultValue="1" />
@@ -197,12 +207,12 @@ const Item = ({ children, ...props }: ItemProps) => {
           <label className="text-xs text-[#1C4E88] font-[600]">Price/Unit</label>
           <input
             className="pr-2 mr-4 max-w-[120px] border-r-0 border-[#888A90]"
-            defaultValue={price}
+            defaultValue={subtotal}
           />
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(price)}</div>
+        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
         <Lucide.X size={18} />
       </div>
     </div>
