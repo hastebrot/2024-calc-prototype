@@ -322,7 +322,9 @@ const Section = (props: SectionProps) => {
       </button>
 
       <div className="flex items-center gap-4 -my-2">
-        <Subtotal value={subtotal} />
+        <div className="p-1.5 -m-1.5 bg-black/15 rounded-md">
+          <Subtotal value={subtotal} />
+        </div>
         <button
           className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
           onClick={onClickRemoveSection}
