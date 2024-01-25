@@ -153,6 +153,7 @@ const Section = (props: SectionProps) => {
         <Lucide.ChevronDown size={18} />
         <span>{name}</span>
       </div>
+
       <div className="flex items-center gap-4">
         <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
         <Lucide.Trash2 size={18} />
@@ -175,6 +176,7 @@ const Subsection = (props: SubsectionProps) => {
         <Lucide.ChevronDown size={18} />
         <span>{name}</span>
       </div>
+
       <div className="flex items-center gap-4">
         <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
         <Lucide.Trash2 size={18} />
@@ -202,24 +204,36 @@ const Item = (props: ItemProps) => {
     <div className="flex items-center justify-between py-2 px-2 pr-3">
       <div className="flex items-center gap-2">
         <Lucide.GripVertical className="text-[#918D85]" size={18} />
-        <div className="grid grid-flow-col auto-cols-max grid-rows-[auto_auto]">
-          <label className="text-xs text-[#1C4E88] font-[600]">Description</label>
-          <input
-            className="pr-2 mr-4 max-w-[220px] border-r border-[#888A90]"
-            defaultValue={name}
-          />
-          <label className="text-xs text-[#1C4E88] font-[600]">Amount</label>
-          <input className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90]" defaultValue="1" />
-          <label className="text-xs text-[#1C4E88] font-[600]">Days</label>
-          <input className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90]" defaultValue="1" />
-          <label className="text-xs text-[#1C4E88] font-[600]">Price/Unit</label>
-          <input
-            className="pr-2 mr-4 max-w-[120px] border-r-0 border-[#888A90]"
-            value={subtotal}
-            onChange={onChangeSubtotal}
-          />
+        <div className="grid grid-flow-col auto-cols-max">
+          <label>
+            <div className="text-xs text-[#1C4E88] font-[600]">Description</div>
+            <input
+              className="pr-2 mr-4 max-w-[220px] border-r border-[#888A90]"
+              defaultValue={name}
+            />
+          </label>
+
+          <label>
+            <div className="text-xs text-[#1C4E88] font-[600]">Amount</div>
+            <input className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90]" defaultValue="1" />
+          </label>
+
+          <label>
+            <div className="text-xs text-[#1C4E88] font-[600]">Days</div>
+            <input className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90]" defaultValue="1" />
+          </label>
+
+          <label>
+            <div className="text-xs text-[#1C4E88] font-[600]">Price/Unit</div>
+            <input
+              className="pr-2 mr-4 max-w-[120px] border-r-0 border-[#888A90]"
+              value={subtotal}
+              onChange={onChangeSubtotal}
+            />
+          </label>
         </div>
       </div>
+
       <div className="flex items-center gap-4">
         <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(subtotal)}</div>
         <Lucide.X size={18} />
