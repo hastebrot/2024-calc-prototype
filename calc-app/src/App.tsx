@@ -5,6 +5,7 @@ import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
 import { deepClone } from "valtio/utils";
 import { Zod, z } from "./helper/zod";
+import { clsx } from "clsx";
 
 const ItemSchema = z.object({
   id: z.string(),
@@ -17,6 +18,7 @@ const SubsectionSchema = z.object({
   name: z.string(),
   items: z.array(ItemSchema).optional(),
   subtotal: z.number().optional(),
+  isCollapsed: z.boolean().optional(),
 });
 
 const SectionSchema = z.object({
@@ -24,6 +26,7 @@ const SectionSchema = z.object({
   name: z.string(),
   subsections: z.array(SubsectionSchema).optional(),
   subtotal: z.number().optional(),
+  isCollapsed: z.boolean().optional(),
 });
 
 const BoardSchema = z.object({
@@ -34,7 +37,7 @@ const BoardSchema = z.object({
 
 type Board = z.infer<typeof BoardSchema>;
 
-const exampleBoard = Zod.parse(BoardSchema, {
+const boardFixture = Zod.parse(BoardSchema, {
   title: "Beispielkalkulation",
   sections: [
     {
@@ -117,20 +120,20 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
-exampleBoard.sections = [
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
-  ...deepClone(exampleBoard.sections ?? []),
+boardFixture.sections = [
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
+  ...deepClone(boardFixture.sections ?? []),
 ];
 
-const appState = deriveBoard(proxy(exampleBoard));
+const appState = deriveBoard(proxy(boardFixture));
 appState.sections = appState.sections?.map(deriveSection);
 for (const section of appState.sections ?? []) {
   section.subsections = section.subsections?.map(deriveSubsection);
@@ -178,15 +181,19 @@ const AppBoardSection = (props: AppBoardSectionProps) => {
   return (
     <Board key={props.section.id}>
       <Section section={props.section} sections={props.sections} />
-      {props.section.subsections?.map((subsection) => {
-        return (
-          <AppBoardSubsection
-            key={subsection.id}
-            subsection={subsection}
-            subsections={props.section.subsections!}
-          />
-        );
-      })}
+      {!props.section.isCollapsed && (
+        <div className="border-t border-[#B8AE9C]">
+          {props.section.subsections?.map((subsection) => {
+            return (
+              <AppBoardSubsection
+                key={subsection.id}
+                subsection={subsection}
+                subsections={props.section.subsections!}
+              />
+            );
+          })}
+        </div>
+      )}
     </Board>
   );
 };
@@ -205,17 +212,20 @@ const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
   return (
     <Fragment>
       <Subsection subsection={props.subsection} subsections={props.subsections}></Subsection>
-      <Group>
-        {props.subsection.items?.map((item) => {
-          return <Item key={item.id} item={item} items={props.subsection.items!} />;
-        })}
-        <div className="flex items-center justify-between py-2 px-2">
-          <button className="inline-flex items-center gap-2" onClick={onClickAddItem}>
-            <Lucide.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
-            <div>Add item</div>
-          </button>
-        </div>
-      </Group>
+      {!props.subsection.isCollapsed && (
+        <Group>
+          {props.subsection.items?.map((item) => {
+            return <Item key={item.id} item={item} items={props.subsection.items!} />;
+          })}
+
+          <div className="flex items-center justify-between py-2 px-2">
+            <button className="inline-flex items-center gap-2" onClick={onClickAddItem}>
+              <Lucide.Plus className="flex-shrink-0 text-[#918D85]" size={18} />
+              <div>Add item</div>
+            </button>
+          </div>
+        </Group>
+      )}
     </Fragment>
   );
 };
@@ -254,13 +264,22 @@ const Section = (props: SectionProps) => {
       props.sections.splice(sectionIndex, 1);
     }
   }, [props.section, props.sections]);
+  const onClickToggleCollapse = () => {
+    props.section.isCollapsed = !props.section.isCollapsed;
+  };
 
   return (
-    <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2">
-      <div className="font-[600] flex items-center gap-2">
-        <Lucide.ChevronDown size={18} />
+    <div className="flex items-center justify-between py-4 px-2">
+      <button
+        className="font-[600] flex items-center gap-2 cursor-pointer"
+        onClick={onClickToggleCollapse}
+      >
+        <Lucide.ChevronDown
+          size={18}
+          className={clsx(props.section.isCollapsed ? "-rotate-90" : "rotate-0")}
+        />
         <span>{name}</span>
-      </div>
+      </button>
 
       <div className="flex items-center gap-4 -my-2">
         <Subtotal value={subtotal} />
@@ -289,13 +308,19 @@ const Subsection = (props: SubsectionProps) => {
       props.subsections.splice(subsectionIndex, 1);
     }
   }, [props.subsection, props.subsections]);
+  const onClickToggleCollapse = () => {
+    props.subsection.isCollapsed = !props.subsection.isCollapsed;
+  };
 
   return (
     <div className="flex items-center justify-between py-4 px-2">
-      <div className="flex items-center gap-2">
-        <Lucide.ChevronDown className="flex-shrink-0" size={18} />
+      <button className="flex items-center gap-2 cursor-pointer" onClick={onClickToggleCollapse}>
+        <Lucide.ChevronDown
+          size={18}
+          className={clsx(props.subsection.isCollapsed ? "-rotate-90" : "rotate-0")}
+        />
         <span>{name}</span>
-      </div>
+      </button>
 
       <div className="flex items-center gap-4 -my-2">
         <Subtotal value={subtotal} />
