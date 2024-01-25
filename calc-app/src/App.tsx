@@ -254,7 +254,7 @@ const Item = (props: ItemProps) => {
   const onChangeSubtotal = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = parseFloat(event.currentTarget.value);
-      const number = isNaN(value) ? 0 : Math.abs(value);
+      const number = isNaN(value) ? 0 : Math.min(1e9, Math.abs(value));
       props.item.subtotal = number;
     },
     [props.item]
