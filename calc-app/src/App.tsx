@@ -36,8 +36,16 @@ export const App = () => {
     store.title = value;
   };
   const onClick2 = useCallback(() => {
-    myProxy.items.push({ id: nanoid(10), name: "foo" });
+    const item = { id: nanoid(10), name: "foo" };
+    myProxy.items.push(item);
   }, [myProxy]);
+  const onClick3 = useCallback(
+    (item: Item) => {
+      const itemIndex = myProxy.items.findIndex((it) => it.id === item.id);
+      myProxy.items.splice(itemIndex, 1);
+    },
+    [myProxy]
+  );
   const items = useSnapshot(myProxy.items);
 
   return (
@@ -50,24 +58,16 @@ export const App = () => {
         <button className="block hover:bg-gray-300" tabIndex={1} onClick={onClick}>
           click
         </button>
-        <input className="block hover:bg-gray-300" value={title} onChange={onChange} />
+        <input className="block w-full hover:bg-gray-300" value={title} onChange={onChange} />
         <button className="block hover:bg-gray-300" tabIndex={1} onClick={onClick2}>
           click
         </button>
         <div>
           {items.map((item) => {
             return (
-              <div className="flex" key={item.id}>
+              <div className="flex gap-2" key={item.id}>
                 <span>{item.id}</span>
-                <button
-                  className="block hover:bg-gray-300"
-                  onClick={() => {
-                    myProxy.items.splice(
-                      myProxy.items.findIndex((it) => it.id === item.id),
-                      1
-                    );
-                  }}
-                >
+                <button className="block hover:bg-gray-300" onClick={() => onClick3(item)}>
                   remove
                 </button>
               </div>
