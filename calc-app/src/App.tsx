@@ -77,7 +77,7 @@ const deriveBoard = (board: z.infer<typeof BoardSchema>) => {
     {
       subtotal(get) {
         let sum = 0;
-        for (const section of board.sections ?? []) {
+        for (const section of get(board).sections ?? []) {
           sum += get(section).subtotal ?? 0;
         }
         return sum;
@@ -92,7 +92,7 @@ const deriveSection = (section: z.infer<typeof SectionSchema>) => {
     {
       subtotal(get) {
         let sum = 0;
-        for (const subsection of section.subsections ?? []) {
+        for (const subsection of get(section).subsections ?? []) {
           sum += get(subsection).subtotal ?? 0;
         }
         return sum;
@@ -107,7 +107,7 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
     {
       subtotal(get) {
         let sum = 0;
-        for (const item of subsection.items ?? []) {
+        for (const item of get(subsection).items ?? []) {
           sum += get(item).subtotal ?? 0;
         }
         return sum;
@@ -144,6 +144,7 @@ const moneyFormat = new Intl.NumberFormat("en-US", {
 export const App = () => {
   const title = useSnapshot(appState).title;
   const subtotal = useSnapshot(appState).subtotal ?? 0;
+  useSnapshot(appState.sections!);
   const sections = appState.sections;
 
   return (
@@ -159,26 +160,54 @@ export const App = () => {
 
       <div className="p-4 text-[#0F203C]">
         {sections?.map((section) => {
-          return (
-            <Board key={section.id}>
-              <Section section={section} />
-              {section.subsections?.map((subsection) => {
-                return (
-                  <Fragment key={subsection.id}>
-                    <Subsection subsection={subsection}></Subsection>
-                    <Group>
-                      {subsection.items?.map((item) => {
-                        return <Item key={item.id} item={item} />;
-                      })}
-                    </Group>
-                  </Fragment>
-                );
-              })}
-            </Board>
-          );
+          return <AppBoardSection key={section.id} section={section} sections={sections!} />;
         })}
       </div>
     </div>
+  );
+};
+
+type AppBoardSectionProps = {
+  section: z.infer<typeof SectionSchema>;
+  sections: z.infer<typeof SectionSchema>[];
+};
+
+const AppBoardSection = (props: AppBoardSectionProps) => {
+  useSnapshot(props.section);
+
+  return (
+    <Board key={props.section.id}>
+      <Section section={props.section} sections={props.sections} />
+      {props.section.subsections?.map((subsection) => {
+        return (
+          <AppBoardSubsection
+            key={subsection.id}
+            subsection={subsection}
+            subsections={props.section.subsections!}
+          />
+        );
+      })}
+    </Board>
+  );
+};
+
+type AppBoardSubsectionProps = {
+  subsection: z.infer<typeof SubsectionSchema>;
+  subsections: z.infer<typeof SubsectionSchema>[];
+};
+
+const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
+  useSnapshot(props.subsection);
+
+  return (
+    <Fragment>
+      <Subsection subsection={props.subsection} subsections={props.subsections}></Subsection>
+      <Group>
+        {props.subsection.items?.map((item) => {
+          return <Item key={item.id} item={item} items={props.subsection.items!} />;
+        })}
+      </Group>
+    </Fragment>
   );
 };
 
@@ -204,22 +233,34 @@ const Group = ({ children }: GroupProps) => {
 
 type SectionProps = {
   section: z.infer<typeof SectionSchema>;
+  sections: z.infer<typeof SectionSchema>[];
 };
 
 const Section = (props: SectionProps) => {
   const name = useSnapshot(props.section).name;
   const subtotal = useSnapshot(props.section).subtotal ?? 0;
+  const onClickRemoveSection = useCallback(() => {
+    const sectionIndex = props.sections.indexOf(props.section) ?? null;
+    if (sectionIndex !== null) {
+      props.sections.splice(sectionIndex, 1);
+    }
+  }, [props.section, props.sections]);
 
   return (
-    <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2 pr-3">
+    <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2">
       <div className="font-[600] flex items-center gap-2">
         <Lucide.ChevronDown size={18} />
         <span>{name}</span>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 -my-2 -mr-1">
         <Subtotal value={subtotal} />
-        <Lucide.Trash2 className="flex-shrink-0" size={18} />
+        <button
+          className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
+          onClick={onClickRemoveSection}
+        >
+          <Lucide.Trash2 className="flex-shrink-0" size={18} />
+        </button>
       </div>
     </div>
   );
@@ -227,22 +268,34 @@ const Section = (props: SectionProps) => {
 
 type SubsectionProps = {
   subsection: z.infer<typeof SubsectionSchema>;
+  subsections: z.infer<typeof SubsectionSchema>[];
 };
 
 const Subsection = (props: SubsectionProps) => {
   const name = useSnapshot(props.subsection).name;
   const subtotal = useSnapshot(props.subsection).subtotal ?? 0;
+  const onClickRemoveSubsection = useCallback(() => {
+    const subsectionIndex = props.subsections.indexOf(props.subsection) ?? null;
+    if (subsectionIndex !== null) {
+      props.subsections.splice(subsectionIndex, 1);
+    }
+  }, [props.subsection, props.subsections]);
 
   return (
-    <div className="flex items-center justify-between py-4 px-2 pr-3">
+    <div className="flex items-center justify-between py-4 px-2">
       <div className="flex items-center gap-2">
         <Lucide.ChevronDown className="flex-shrink-0" size={18} />
         <span>{name}</span>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 -my-2 -mr-1">
         <Subtotal value={subtotal} />
-        <Lucide.Trash2 className="flex-shrink-0" size={18} />
+        <button
+          className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
+          onClick={onClickRemoveSubsection}
+        >
+          <Lucide.Trash2 className="flex-shrink-0" size={18} />
+        </button>
       </div>
     </div>
   );
@@ -250,6 +303,7 @@ const Subsection = (props: SubsectionProps) => {
 
 type ItemProps = {
   item: z.infer<typeof ItemSchema>;
+  items: z.infer<typeof ItemSchema>[];
 };
 
 const Item = (props: ItemProps) => {
@@ -261,11 +315,17 @@ const Item = (props: ItemProps) => {
       const number = isNaN(value) ? 0 : Math.min(1e9, Math.abs(value));
       props.item.subtotal = number;
     },
-    [props.item]
+    [props.item, props.items]
   );
+  const onClickRemoveItem = useCallback(() => {
+    const itemIndex = props.items.indexOf(props.item) ?? null;
+    if (itemIndex !== null) {
+      props.items.splice(itemIndex, 1);
+    }
+  }, [props.item, props.items]);
 
   return (
-    <div className="flex items-center justify-between py-2 px-2 pr-3">
+    <div className="flex items-center justify-between py-2 px-2">
       <div className="flex items-center gap-2">
         <Lucide.GripVertical className="flex-shrink-0 text-[#918D85]" size={18} />
         <div className="grid grid-flow-col auto-cols-max">
@@ -298,9 +358,14 @@ const Item = (props: ItemProps) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 -my-2 -mr-1">
         <Subtotal value={subtotal} />
-        <Lucide.X className="flex-shrink-0" size={18} />
+        <button
+          className="p-2 rounded-full cursor-pointer hover:bg-black/15 active:bg-black/30"
+          onClick={onClickRemoveItem}
+        >
+          <Lucide.X className="flex-shrink-0" size={18} />
+        </button>
       </div>
     </div>
   );
