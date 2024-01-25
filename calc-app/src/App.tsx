@@ -10,7 +10,7 @@ import { Zod, z } from "./helper/zod";
 const ItemSchema = Zod.object("Item", {
   id: z.string(),
   name: z.string(),
-  subtotal: z.number().optional(),
+  subtotal: z.number(),
 });
 
 const SubsectionSchema = Zod.object("Subsection", {
@@ -176,12 +176,12 @@ type AppBoardSectionProps = {
 };
 
 const AppBoardSection = (props: AppBoardSectionProps) => {
-  useSnapshot(props.section);
+  const isCollapsed = useSnapshot(props.section).isCollapsed;
 
   return (
     <Board key={props.section.id}>
       <Section section={props.section} sections={props.sections} />
-      {!props.section.isCollapsed && (
+      {!isCollapsed && (
         <div className="border-t border-[#B8AE9C]">
           {props.section.subsections.map((subsection) => {
             return (
@@ -204,6 +204,7 @@ type AppBoardSubsectionProps = {
 };
 
 const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
+  const isCollapsed = useSnapshot(props.subsection).isCollapsed;
   useSnapshot(props.subsection);
   const onClickAddItem = () => {
     const item = Zod.parse(ItemSchema, {
@@ -217,7 +218,7 @@ const AppBoardSubsection = (props: AppBoardSubsectionProps) => {
   return (
     <Fragment>
       <Subsection subsection={props.subsection} subsections={props.subsections}></Subsection>
-      {!props.subsection.isCollapsed && (
+      {!isCollapsed && (
         <Group>
           {props.subsection.items.map((item) => {
             return <Item key={item.id} item={item} items={props.subsection.items} />;
@@ -263,6 +264,7 @@ type SectionProps = {
 const Section = (props: SectionProps) => {
   const name = useSnapshot(props.section).name;
   const subtotal = useSnapshot(props.section).subtotal ?? 0;
+  const isCollapsed = useSnapshot(props.section).isCollapsed;
   const onClickRemoveSection = useCallback(() => {
     const sectionIndex = props.sections.indexOf(props.section) ?? null;
     if (sectionIndex !== null) {
@@ -279,10 +281,7 @@ const Section = (props: SectionProps) => {
         className="font-[600] flex items-center gap-2 cursor-pointer"
         onClick={onClickToggleCollapse}
       >
-        <icons.ChevronDown
-          size={18}
-          className={clsx(props.section.isCollapsed ? "-rotate-90" : "rotate-0")}
-        />
+        <icons.ChevronDown size={18} className={clsx(isCollapsed ? "-rotate-90" : "rotate-0")} />
         <span>{name}</span>
       </button>
 
@@ -307,6 +306,7 @@ type SubsectionProps = {
 const Subsection = (props: SubsectionProps) => {
   const name = useSnapshot(props.subsection).name;
   const subtotal = useSnapshot(props.subsection).subtotal ?? 0;
+  const isCollapsed = useSnapshot(props.subsection).isCollapsed;
   const onClickRemoveSubsection = useCallback(() => {
     const subsectionIndex = props.subsections.indexOf(props.subsection) ?? null;
     if (subsectionIndex !== null) {
@@ -320,10 +320,7 @@ const Subsection = (props: SubsectionProps) => {
   return (
     <div className="flex items-center justify-between py-4 px-2">
       <button className="flex items-center gap-2 cursor-pointer" onClick={onClickToggleCollapse}>
-        <icons.ChevronDown
-          size={18}
-          className={clsx(props.subsection.isCollapsed ? "-rotate-90" : "rotate-0")}
-        />
+        <icons.ChevronDown size={18} className={clsx(isCollapsed ? "-rotate-90" : "rotate-0")} />
         <span>{name}</span>
       </button>
 
