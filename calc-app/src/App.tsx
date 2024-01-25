@@ -120,11 +120,8 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
-Array.from({ length: 5 }).forEach(() => {
-  boardFixture.sections = [
-    ...deepClone(boardFixture.sections),
-    ...deepClone(boardFixture.sections),
-  ];
+boardFixture.sections = Array.from({ length: 100 }).flatMap(() => {
+  return deepClone(boardFixture.sections);
 });
 
 const appState = deriveBoard(proxy(boardFixture));
