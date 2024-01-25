@@ -127,6 +127,7 @@ exampleBoard.sections = [
   ...deepClone(exampleBoard.sections ?? []),
   ...deepClone(exampleBoard.sections ?? []),
   ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
 ];
 
 const appState = deriveBoard(proxy(exampleBoard));
@@ -147,7 +148,7 @@ export const App = () => {
 
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
-      <div className="p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
+      <div className="sticky top-0 p-4 bg-[#FFFFFF] text-[#0F203C] font-[600]">
         <div className="flex items-center justify-between">
           <span>{title}</span>
           <Subtotal value={subtotal} />
