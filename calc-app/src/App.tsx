@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { nanoid } from "nanoid";
 import * as Lucide from "lucide-react";
 
-type Item = { id: string; name: string };
+type Item = { id: string; name: string; price?: number };
 
 const myProxy = proxy({
   items: [] as Item[],
@@ -22,6 +22,11 @@ const barProxy = derive({
   barCount(get) {
     return get(store).count + 1;
   },
+});
+
+const moneyFormat = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "EUR",
 });
 
 export const App = () => {
@@ -88,13 +93,13 @@ type SectionProps = {
 
 const Section = ({ children }: SectionProps) => {
   return (
-    <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2">
+    <div className="flex items-center justify-between border-b border-[#B8AE9C] py-4 px-2 pr-3">
       <div className="font-[600] flex items-center gap-2">
         <Lucide.ChevronDown size={18} />
         <span>{children}</span>
       </div>
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">3000 EUR</div>
+        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(3000)}</div>
         <Lucide.Trash2 size={18} />
       </div>
     </div>
@@ -107,13 +112,13 @@ type SubsectionProps = {
 
 const Subsection = ({ children }: SubsectionProps) => {
   return (
-    <div className="flex items-center justify-between py-4 px-2">
+    <div className="flex items-center justify-between py-4 px-2 pr-3">
       <div className="flex items-center gap-2">
         <Lucide.ChevronDown size={18} />
         <span>{children}</span>
       </div>
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">3000 EUR</div>
+        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(3000)}</div>
         <Lucide.Trash2 size={18} />
       </div>
     </div>
@@ -125,7 +130,7 @@ type ItemProps = {
 
 const Item = ({ children }: ItemProps) => {
   return (
-    <div className="flex items-center justify-between py-2 px-2">
+    <div className="flex items-center justify-between py-2 px-2 pr-3">
       <div className="flex items-center gap-2">
         <Lucide.GripVertical className="text-[#918D85]" size={18} />
         <div className="grid grid-flow-col auto-cols-max grid-rows-[auto_auto]">
@@ -146,7 +151,7 @@ const Item = ({ children }: ItemProps) => {
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <div className="font-[600] text-sm tabular-nums">1000 EUR</div>
+        <div className="font-[600] text-sm tabular-nums">{moneyFormat.format(1000)}</div>
         <Lucide.X size={18} />
       </div>
     </div>
