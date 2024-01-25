@@ -3,8 +3,8 @@ import * as Lucide from "lucide-react";
 import { nanoid } from "nanoid";
 import { Fragment, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
-import { deepClone } from "valtio/utils";
 import { Zod, z } from "./helper/zod";
+import { deepClone } from "valtio/utils";
 
 const ItemSchema = z.object({
   id: z.string(),
@@ -34,7 +34,7 @@ const BoardSchema = z.object({
 
 type Board = z.infer<typeof BoardSchema>;
 
-const boardFixture = Zod.parse(BoardSchema, {
+const exampleBoard = Zod.parse(BoardSchema, {
   title: "Beispielkalkulation",
   sections: [
     {
@@ -117,20 +117,19 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
-boardFixture.sections = [
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
-  ...deepClone(boardFixture.sections ?? []),
+exampleBoard.sections = [
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
+  ...deepClone(exampleBoard.sections ?? []),
 ];
 
-const appState = deriveBoard(proxy(boardFixture));
+const appState = deriveBoard(proxy(exampleBoard));
 appState.sections = appState.sections?.map(deriveSection);
 for (const section of appState.sections ?? []) {
   section.subsections = section.subsections?.map(deriveSubsection);
