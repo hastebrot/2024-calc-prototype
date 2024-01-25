@@ -120,18 +120,12 @@ const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) => {
   );
 };
 
-boardFixture.sections = [
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-  ...deepClone(boardFixture.sections),
-];
+Array.from({ length: 5 }).forEach(() => {
+  boardFixture.sections = [
+    ...deepClone(boardFixture.sections),
+    ...deepClone(boardFixture.sections),
+  ];
+});
 
 const appState = deriveBoard(proxy(boardFixture));
 appState.sections = appState.sections.map(deriveSection);
