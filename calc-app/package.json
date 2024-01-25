@@ -25,6 +25,7 @@
     "@vitejs/plugin-react-swc": "^3.5.0",
     "autoprefixer": "^10.4.17",
     "bunshi": "^2.0.2",
+    "clsx": "^2.1.0",
     "derive-valtio": "^0.1.0",
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
