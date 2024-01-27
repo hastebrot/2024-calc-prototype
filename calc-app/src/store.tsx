@@ -121,7 +121,7 @@ export const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) =
 
 export const createStore = () => {
   console.log("createStore");
-  const numOfSections = 2;
+  const numOfSections = 3;
   boardFixture.sections = Array.from({ length: numOfSections }).flatMap(() => {
     return structuredClone(
       boardFixture.sections.map((section) => ({ ...section, id: nanoid(20) }))

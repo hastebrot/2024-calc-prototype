@@ -2,7 +2,7 @@ import { clsx } from "clsx";
 import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Fragment, Profiler, memo, useCallback } from "react";
-import { proxy, useSnapshot } from "valtio";
+import { proxy, snapshot, useSnapshot } from "valtio";
 import { Zod, z } from "./helper/zod";
 import {
   BoardSchema,
@@ -22,6 +22,9 @@ export const App = () => {
   return (
     <ProfilerWrapper noLogging>
       <AppBoard board={store.board} />
+      <div className="z-20 fixed top-0 right-0 bottom-0 w-[400px] grid">
+        <Debug board={store.board} />
+      </div>
     </ProfilerWrapper>
   );
 };
@@ -30,12 +33,59 @@ type AppBoardProps = {
   board: z.infer<typeof BoardSchema>;
 };
 
+// const traverseProxy = (value: object) => {
+//   console.log(JSON.stringify(value));
+//   console.log(snapshot(value));
+// };
+
+type DebugProps = {
+  board: z.infer<typeof BoardSchema>;
+};
+
+const Debug = (props: DebugProps) => {
+  const board = useSnapshot(props.board);
+
+  return (
+    <div className="grid w-full h-full shadow-lg">
+      <div className="relative bg-white">
+        <div className="absolute inset-0 overflow-y-scroll overflow-x-hidden">
+          <div className="p-4">
+            {board.sections.map((section) => {
+              return (
+                <div className="px-0">
+                  <div className="font-[600]">{section.name}</div>
+                  <div>
+                    {section.subsections.map((subsection) => {
+                      return (
+                        <div className="px-4">
+                          <div>{subsection.name}</div>
+                          <div>
+                            {subsection.items.map((item) => {
+                              return <div className="px-4 text-black/50">{item.name}</div>;
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="p-4 break-all text-sm">{JSON.stringify(board)}d</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AppBoard = (props: AppBoardProps) => {
   useSnapshot(props.board.sections);
 
   return (
     <div className="relative font-sans min-h-dvh bg-[#F5F3EF] font-[400]">
-      <div className="sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
+      <div className="z-10 sticky top-0 p-4 px-8 bg-[#FFFFFF] text-[#0F203C] font-[600]">
         <AppBoardHeader board={props.board} />
       </div>
 
