@@ -72,6 +72,50 @@ test("valtio condition with proxy() and derive()", async () => {
   expect(snapshot(field2).value).toBe(100);
 });
 
+test("valtio aggregation with proxy() and derive()", async () => {
+  type FieldLink = { value: number };
+
+  // given:
+  const field1Links = proxy({ value: [] as FieldLink[] });
+  const field1 = derive({
+    value: (get) => {
+      let sum = 0;
+      for (const fieldLink of get(field1Links).value) {
+        sum += fieldLink.value;
+      }
+      return sum;
+    },
+  });
+
+  // when:
+  field1Links.value = [];
+
+  // then:
+  expect(snapshot(field1).value).toBe(0);
+
+  // when:
+  field1Links.value = [proxy({ value: 1 })];
+  await tick();
+
+  // then:
+  expect(snapshot(field1).value).toBe(1);
+
+  // when:
+  const fieldLink = proxy({ value: 2 });
+  field1Links.value.push(fieldLink);
+  await tick();
+
+  // then:
+  expect(snapshot(field1).value).toBe(3);
+
+  // when:
+  fieldLink.value = 3;
+  await tick();
+
+  // then:
+  expect(snapshot(field1).value).toBe(4);
+});
+
 export const tick = () => {
   // schedules a function to be executed in the next iteration of the event loop,
   // after the current event loop cycle completes.
