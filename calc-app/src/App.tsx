@@ -2,7 +2,7 @@ import { clsx } from "clsx";
 import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Fragment, Profiler, memo, useCallback } from "react";
-import { proxy, snapshot, useSnapshot } from "valtio";
+import { proxy, useSnapshot } from "valtio";
 import { Zod, z } from "./helper/zod";
 import {
   BoardSchema,
@@ -22,7 +22,7 @@ export const App = () => {
   return (
     <ProfilerWrapper noLogging>
       <AppBoard board={store.board} />
-      <div className="z-20 fixed top-0 right-0 bottom-0 w-[400px] grid">
+      <div className="hidden _grid z-20 fixed top-0 right-0 bottom-0 w-[400px]">
         <Debug board={store.board} />
       </div>
     </ProfilerWrapper>

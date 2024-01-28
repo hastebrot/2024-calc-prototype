@@ -8,13 +8,13 @@ export const parseEdnValue = <In, Out>(edn: unknown): z.SafeParseReturnType<In, 
   return ednValue.safeParse(edn);
 };
 
-export class EdnMap<Key, Val> {
+export class EdnMap<Key = any, Val = any> {
   constructor(public entries: EdnMapEntry<Key, Val>[]) {}
 }
-export class EdnMapEntry<Key, Val> {
+export class EdnMapEntry<Key = any, Val = any> {
   constructor(public key: Key, public val: Val) {}
 }
-export class EdnSet<Val> {
+export class EdnSet<Val = any> {
   constructor(public items: Val[]) {}
 }
 export class EdnKey {
@@ -23,7 +23,7 @@ export class EdnKey {
 export class EdnSym {
   constructor(public sym: string) {}
 }
-export class EdnTag<Val> {
+export class EdnTag<Val = any> {
   constructor(public tag: string, public val: Val) {}
 }
 
