@@ -37,6 +37,11 @@ test("edn", () => {
   }
 });
 
+// 1. create inputs and outputs in map. we use map keys to refer to the inputs and outputs
+// 2. inputs with isLinkable are switches (they have two input ports)
+// 3. update outputs according to the logic
+// 4. create code for tests
+
 test("edn grammar", () => {
   const json = parseEdn(`
     #tag [{:foo 1, :bar "2", :baz false}]
