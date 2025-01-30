@@ -1,7 +1,8 @@
+import { derive } from "derive-valtio";
 import { nanoid } from "nanoid";
 import { proxy } from "valtio";
-import { derive } from "valtio/utils";
-import { Zod, z } from "./helper/zod";
+import { z } from "zod";
+import { Zod } from "./helper/zod";
 
 export const ItemSchema = Zod.object("Item", {
   id: z.string(),
@@ -33,7 +34,7 @@ export const BoardSchema = Zod.object("Board", {
 
 export type Board = z.infer<typeof BoardSchema>;
 
-const boardFixture = Zod.parse(BoardSchema, {
+const boardFixture = Zod.parseStrict(BoardSchema, {
   title: "Beispielkalkulation",
   sections: [
     {
