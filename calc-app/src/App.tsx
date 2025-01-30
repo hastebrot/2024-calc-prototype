@@ -1,9 +1,10 @@
 import { clsx } from "clsx";
-import { icons } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Fragment, Profiler, memo, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
-import { Zod, z } from "./helper/zod";
+import { z } from "zod";
+import { icons } from "./helper/lucide";
+import { Zod } from "./helper/zod";
 import {
   BoardSchema,
   ItemSchema,
@@ -286,25 +287,31 @@ const Item = (props: ItemProps) => {
           <label>
             <div className="text-xs text-[#1C4E88] font-[600]">Description</div>
             <input
-              className="pr-2 mr-4 max-w-[220px] border-r border-[#888A90]"
+              className="pr-2 mr-4 max-w-[220px] border-r border-[#888A90] rounded-none"
               defaultValue={name}
             />
           </label>
 
           <label>
             <div className="text-xs text-[#1C4E88] font-[600]">Amount</div>
-            <input className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90]" defaultValue="1" />
+            <input
+              className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90] rounded-none"
+              defaultValue="1"
+            />
           </label>
 
           <label>
             <div className="text-xs text-[#1C4E88] font-[600]">Days</div>
-            <input className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90]" defaultValue="1" />
+            <input
+              className="pr-2 mr-4 max-w-[80px] border-r border-[#888A90] rounded-none"
+              defaultValue="1"
+            />
           </label>
 
           <label>
             <div className="text-xs text-[#1C4E88] font-[600]">Price/Unit</div>
             <input
-              className="pr-2 mr-4 max-w-[120px] border-r-0 border-[#888A90]"
+              className="pr-2 mr-4 max-w-[120px] border-r-0 border-[#888A90] rounded-none"
               value={subtotal}
               onChange={onChangeSubtotal}
             />
