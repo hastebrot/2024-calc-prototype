@@ -2,7 +2,7 @@ import { clsx } from "clsx";
 import { nanoid } from "nanoid";
 import { Fragment, Profiler, memo, useCallback } from "react";
 import { proxy, useSnapshot } from "valtio";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { icons } from "./helper/lucide";
 import { Zod } from "./helper/zod";
 import {
@@ -270,7 +270,7 @@ const Item = (props: ItemProps) => {
       const number = isNaN(value) ? 0 : Math.min(1e9, Math.abs(value));
       props.item.subtotal = number;
     },
-    [props.item]
+    [props.item],
   );
   const onClickRemoveItem = () => {
     const itemIndex = props.items.indexOf(props.item) ?? null;
@@ -350,7 +350,7 @@ type ProfilerOnRenderCallback = (
   actualDuration: number,
   baseDuration: number,
   startTime: number,
-  commitTime: number
+  commitTime: number,
 ) => void;
 
 type ProfilerWrapperProps = {
@@ -364,7 +364,7 @@ const ProfilerWrapper = ({ children, ...props }: ProfilerWrapperProps) => {
     phase,
     actualDuration,
     baseDuration,
-    startTime
+    startTime,
   ) => {
     if (!props.noLogging) {
       console.debug({

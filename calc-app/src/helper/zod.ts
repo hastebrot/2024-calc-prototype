@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const Zod = {
   schema<T extends z.ZodType>(description: string, schema: T): T {
@@ -9,11 +9,11 @@ export const Zod = {
     return z.object(shape).describe(description);
   },
 
-  parse<Out, In>(schema: z.ZodType<Out, z.ZodTypeDef, In>, value: unknown): Out {
+  parse<Out, In>(schema: z.ZodType<Out, In>, value: unknown): Out {
     return Zod.parseStrict(schema, value);
   },
 
-  parseStrict<Out, In>(schema: z.ZodType<Out, z.ZodTypeDef, In>, value: In): Out {
+  parseStrict<Out, In>(schema: z.ZodType<Out, In>, value: In): Out {
     try {
       return schema.parse(value);
     } catch (error: unknown) {
