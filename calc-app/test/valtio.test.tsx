@@ -56,20 +56,20 @@ test("proxy subscription", async () => {
   // when/then:
   field.value = 1;
   await tick();
-  expect(fieldCallback).toBeCalledTimes(1);
-  expect(fieldObjectCallback).toBeCalledTimes(0);
+  expect(fieldCallback).toHaveBeenCalledTimes(1);
+  expect(fieldObjectCallback).toHaveBeenCalledTimes(0);
 
   // when/then:
   field.object.value = 1;
   await tick();
-  expect(fieldCallback).toBeCalledTimes(2);
-  expect(fieldObjectCallback).toBeCalledTimes(1);
+  expect(fieldCallback).toHaveBeenCalledTimes(2);
+  expect(fieldObjectCallback).toHaveBeenCalledTimes(1);
 
   // when/then:
   field.array.push(1);
   await tick();
-  expect(fieldCallback).toBeCalledTimes(3);
-  expect(fieldObjectCallback).toBeCalledTimes(1);
+  expect(fieldCallback).toHaveBeenCalledTimes(3);
+  expect(fieldObjectCallback).toHaveBeenCalledTimes(1);
 });
 
 test("valtio condition with proxy() and derive()", async () => {
@@ -189,7 +189,7 @@ export const tick = () => {
 
 export function deriveProxy<T extends object, U extends object>(
   proxy: T,
-  derived: Parameters<typeof derive<T, U>>[0]
+  derived: Parameters<typeof derive<T, U>>[0],
 ) {
   return derive(derived, { proxy });
 }

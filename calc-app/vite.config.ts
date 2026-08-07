@@ -1,17 +1,31 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
 import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    {
+      name: "full-reload-on-hot-update",
+      handleHotUpdate({ server }) {
+        server.ws.send({ type: "full-reload" });
+        return [];
+      },
+    },
+  ],
   build: {
     sourcemap: false,
     minify: true,
-    rollupOptions: {
+    reportCompressedSize: true,
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom"],
-          "react-router": ["react-router", "react-router-dom"],
+        codeSplitting: {
+          groups: [
+            { name: "react-router", test: "react-router" },
+            { name: "react", test: "react|react-dom" },
+            { name: "modules", test: "[\\\\/]node_modules" },
+          ],
         },
       },
     },

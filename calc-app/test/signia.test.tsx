@@ -2,7 +2,7 @@
 
 import { atom, computed, type Atom, type Computed, type Signal } from "signia";
 import { expect, test } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 // repo for "signia" package: https://github.com/tldraw/signia
 

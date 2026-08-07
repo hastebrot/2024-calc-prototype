@@ -1,7 +1,7 @@
 import { derive } from "derive-valtio";
 import { nanoid } from "nanoid";
 import { proxy } from "valtio";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { Zod } from "./helper/zod";
 
 export const ItemSchema = Zod.object("Item", {
@@ -84,7 +84,7 @@ export const deriveBoard = (board: z.infer<typeof BoardSchema>) => {
         return sum;
       },
     },
-    { proxy: board }
+    { proxy: board },
   );
 };
 
@@ -100,7 +100,7 @@ export const deriveSection = (section: z.infer<typeof SectionSchema>) => {
         return sum;
       },
     },
-    { proxy: section }
+    { proxy: section },
   );
 };
 
@@ -116,7 +116,7 @@ export const deriveSubsection = (subsection: z.infer<typeof SubsectionSchema>) =
         return sum;
       },
     },
-    { proxy: subsection }
+    { proxy: subsection },
   );
 };
 
@@ -125,7 +125,7 @@ export const createStore = () => {
   const numOfSections = 2;
   boardFixture.sections = Array.from({ length: numOfSections }).flatMap(() => {
     return structuredClone(
-      boardFixture.sections.map((section) => ({ ...section, id: nanoid(20) }))
+      boardFixture.sections.map((section) => ({ ...section, id: nanoid(20) })),
     );
   });
 
